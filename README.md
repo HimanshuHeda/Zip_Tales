@@ -13,6 +13,14 @@
   [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 </div>
 
+---
+
+## 🌐 Live Demo
+
+The project is live and working at: [https://ziptales.netlify.app/](https://ziptales.netlify.app/)
+
+---
+
 ## 📖 Table of Contents
 
 - [Overview](#overview)
@@ -52,6 +60,10 @@ In an era of information overload and widespread misinformation, ZipTales stands
 - **Reputation Management**: Sophisticated user reputation system based on voting accuracy
 - **Collaborative Verification**: Community members work together to identify reliable sources
 
+### 🔗 Blockchain-Powered Verification
+- **On-Chain Proof**: News verification and voting results are recorded on the blockchain for transparency and immutability
+- **Decentralized Trust**: Leverages blockchain technology to ensure tamper-proof validation and auditability
+
 ### 📊 Comprehensive Analytics
 - **Credibility Scoring Algorithm**:
   - Author Reputation (30%)
@@ -83,6 +95,7 @@ In an era of information overload and widespread misinformation, ZipTales stands
 - **Supabase** - Backend-as-a-Service with PostgreSQL database
 - **Row Level Security (RLS)** - Database-level security policies
 - **Real-time Subscriptions** - Live data updates across the platform
+- **Blockchain Integration** - On-chain storage of verification and voting data for transparency
 
 ### AI & APIs
 - **Google Gemini AI** - Advanced language model for content analysis
@@ -270,6 +283,7 @@ ziptales/
 ### News Verification Engine
 - **AI-powered analysis**: Google Gemini integration for content assessment
 - **Community validation**: Weighted voting system based on user reputation
+- **Blockchain-backed verification**: All votes and credibility scores are recorded on-chain for transparency
 - **Real-time scoring**: Dynamic credibility updates
 
 ### ZipBot AI Assistant
