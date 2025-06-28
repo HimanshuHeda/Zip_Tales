@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, User, LogOut, Bookmark, Vote, RefreshCw } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, Bookmark, Vote, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNews } from '../contexts/NewsContext';
 
@@ -9,9 +9,9 @@ const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const { user, logout, isAuthenticated } = useAuth();
-  const { searchNews, fetchNewsFromAPI } = useNews();
+  const { searchNews } = useNews();
   const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -37,20 +37,19 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleRefreshNews = async () => {
-    setIsRefreshing(true);
-    try {
-      await fetchNewsFromAPI();
-    } catch (error) {
-      console.error('Error refreshing news:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/');
+    setIsMenuOpen(false);
+  };
+
+  const handleCategoryClick = (category: string) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/categories/${category.toLowerCase()}`);
+    setShowCategoryDropdown(false);
     setIsMenuOpen(false);
   };
 
@@ -59,6 +58,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = () => {
       setShowSearchResults(false);
+      setShowCategoryDropdown(false);
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -71,7 +71,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img src="/ZipTails.jpg" alt="ZipTales" className="h-10 w-10 rounded-full" />
+            <img src="/Zip Tales.jpg" alt="ZipTales" className="h-10 w-10 rounded-full" />
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-gradient-to-r from-pink-600 to-blue-600 bg-clip-text text-transparent">
                 ZipTales
@@ -125,22 +125,53 @@ const Header: React.FC = () => {
             <Link to="/" className="text-gray-700 hover:text-pink-600 transition-colors">
               Home
             </Link>
-            <div className="relative group">
-              <button className="text-gray-700 hover:text-pink-600 transition-colors">
-                Categories
+            
+            {/* Categories Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCategoryDropdown(!showCategoryDropdown);
+                }}
+                className="flex items-center space-x-1 text-gray-700 hover:text-pink-600 transition-colors"
+              >
+                <span>Categories</span>
+                {!isAuthenticated && <Lock className="h-4 w-4 text-gray-400" />}
               </button>
-              <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                {categories.map((category) => (
-                  <Link
-                    key={category}
-                    to={`/categories/${category.toLowerCase()}`}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 first:rounded-t-lg last:rounded-b-lg"
-                  >
-                    {category}
-                  </Link>
-                ))}
-              </div>
+              
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-100 visible transition-all duration-200 z-50">
+                  {!isAuthenticated && (
+                    <div className="p-4 border-b border-gray-100">
+                      <p className="text-sm text-gray-600 mb-2">Sign in to access categories</p>
+                      <Link
+                        to="/login"
+                        className="text-xs px-3 py-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                        onClick={() => setShowCategoryDropdown(false)}
+                      >
+                        Sign In
+                      </Link>
+                    </div>
+                  )}
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryClick(category)}
+                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-pink-50 hover:text-pink-600 first:rounded-t-lg last:rounded-b-lg transition-colors ${
+                        !isAuthenticated ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'
+                      }`}
+                      disabled={!isAuthenticated}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{category}</span>
+                        {!isAuthenticated && <Lock className="h-3 w-3" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            
             {isAuthenticated && (
               <>
                 <Link to="/voting" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors">
@@ -151,15 +182,6 @@ const Header: React.FC = () => {
                   <Bookmark className="h-4 w-4" />
                   <span>Saved</span>
                 </Link>
-                <button
-                  onClick={handleRefreshNews}
-                  disabled={isRefreshing}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition-colors disabled:opacity-50"
-                  title="Refresh news from API"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  <span>Refresh</span>
-                </button>
               </>
             )}
           </nav>
@@ -250,16 +272,31 @@ const Header: React.FC = () => {
               </Link>
               
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-500">Categories</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-500">Categories</span>
+                  {!isAuthenticated && (
+                    <div className="flex items-center space-x-1 text-xs text-gray-400">
+                      <Lock className="h-3 w-3" />
+                      <span>Login Required</span>
+                    </div>
+                  )}
+                </div>
                 {categories.map((category) => (
-                  <Link
+                  <button
                     key={category}
-                    to={`/categories/${category.toLowerCase()}`}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block pl-4 text-gray-700 hover:text-pink-600 transition-colors"
+                    onClick={() => handleCategoryClick(category)}
+                    className={`block w-full text-left pl-4 transition-colors ${
+                      !isAuthenticated 
+                        ? 'text-gray-400 cursor-not-allowed' 
+                        : 'text-gray-700 hover:text-pink-600'
+                    }`}
+                    disabled={!isAuthenticated}
                   >
-                    {category}
-                  </Link>
+                    <div className="flex items-center justify-between">
+                      <span>{category}</span>
+                      {!isAuthenticated && <Lock className="h-3 w-3" />}
+                    </div>
+                  </button>
                 ))}
               </div>
 
@@ -288,15 +325,31 @@ const Header: React.FC = () => {
                   >
                     Submit News
                   </Link>
-                  <button
-                    onClick={handleRefreshNews}
-                    disabled={isRefreshing}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span>Refresh News</span>
-                  </button>
                 </>
+              )}
+
+              {!isAuthenticated && (
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Sign in to access all features including categories, voting, and saving articles.
+                  </p>
+                  <div className="space-y-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium text-center hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors"
+                    >
+                      Create Account
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           </div>

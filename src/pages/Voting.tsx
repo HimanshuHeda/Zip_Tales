@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Vote, ThumbsUp, ThumbsDown, Filter, Search } from 'lucide-react';
+import { Vote, ThumbsUp, ThumbsDown, Filter, Search, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
@@ -7,7 +7,7 @@ import NewsCard from '../components/NewsCard';
 const Voting: React.FC = () => {
   const { articles, loading } = useNews();
   const { isAuthenticated } = useAuth();
-  const [filter, setFilter] = useState<'all' | 'pending' | 'disputed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'disputed' | 'trusted'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredArticles = articles.filter(article => {
@@ -21,9 +21,22 @@ const Voting: React.FC = () => {
         return article.credibilityScore >= 40 && article.credibilityScore < 70;
       case 'disputed':
         return article.credibilityScore < 40;
+      case 'trusted':
+        return article.credibilityScore >= 70;
       default:
         return true;
     }
+  });
+
+  // Prioritize pending articles for voting
+  const sortedArticles = filteredArticles.sort((a, b) => {
+    if (filter === 'pending') {
+      // Sort by least votes first (need more community input)
+      const aVotes = a.votes.upvotes + a.votes.downvotes;
+      const bVotes = b.votes.upvotes + b.votes.downvotes;
+      return aVotes - bVotes;
+    }
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
   });
 
   if (!isAuthenticated) {
@@ -70,25 +83,46 @@ const Voting: React.FC = () => {
           </p>
         </div>
 
+        {/* Priority Notice */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 mb-8">
+          <div className="flex items-center space-x-2 mb-2">
+            <Clock className="h-5 w-5 text-yellow-600" />
+            <h3 className="font-semibold text-yellow-800">Verification Priority</h3>
+          </div>
+          <p className="text-yellow-700 text-sm">
+            Articles with fewer votes are shown first to ensure all news gets proper community verification. 
+            Focus on "Pending Verification" articles that need your input most.
+          </p>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
             <div className="text-2xl font-bold text-green-600 mb-2">
               {articles.filter(a => a.credibilityScore >= 70).length}
             </div>
-            <div className="text-sm text-gray-600">Trusted Articles</div>
+            <div className="text-sm text-gray-600 flex items-center justify-center space-x-1">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span>Trusted Articles</span>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
             <div className="text-2xl font-bold text-yellow-600 mb-2">
               {articles.filter(a => a.credibilityScore >= 40 && a.credibilityScore < 70).length}
             </div>
-            <div className="text-sm text-gray-600">Pending Verification</div>
+            <div className="text-sm text-gray-600 flex items-center justify-center space-x-1">
+              <Clock className="h-4 w-4 text-yellow-600" />
+              <span>Pending Verification</span>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
             <div className="text-2xl font-bold text-red-600 mb-2">
               {articles.filter(a => a.credibilityScore < 40).length}
             </div>
-            <div className="text-sm text-gray-600">Disputed Articles</div>
+            <div className="text-sm text-gray-600 flex items-center justify-center space-x-1">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <span>Disputed Articles</span>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
             <div className="text-2xl font-bold text-blue-600 mb-2">
@@ -105,6 +139,39 @@ const Voting: React.FC = () => {
               <Filter className="h-5 w-5 text-gray-400" />
               <div className="flex space-x-2">
                 <button
+                  onClick={() => setFilter('pending')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 ${
+                    filter === 'pending'
+                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>Pending ({articles.filter(a => a.credibilityScore >= 40 && a.credibilityScore < 70).length})</span>
+                </button>
+                <button
+                  onClick={() => setFilter('disputed')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 ${
+                    filter === 'disputed'
+                      ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Disputed ({articles.filter(a => a.credibilityScore < 40).length})</span>
+                </button>
+                <button
+                  onClick={() => setFilter('trusted')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 ${
+                    filter === 'trusted'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Trusted ({articles.filter(a => a.credibilityScore >= 70).length})</span>
+                </button>
+                <button
                   onClick={() => setFilter('all')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filter === 'all'
@@ -113,26 +180,6 @@ const Voting: React.FC = () => {
                   }`}
                 >
                   All Articles
-                </button>
-                <button
-                  onClick={() => setFilter('pending')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'pending'
-                      ? 'bg-gradient-to-r from-pink-500 to-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Pending
-                </button>
-                <button
-                  onClick={() => setFilter('disputed')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'disputed'
-                      ? 'bg-gradient-to-r from-pink-500 to-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Disputed
                 </button>
               </div>
             </div>
@@ -191,9 +238,9 @@ const Voting: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : filteredArticles.length > 0 ? (
+        ) : sortedArticles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((article) => (
+            {sortedArticles.map((article) => (
               <NewsCard key={article.id} article={article} />
             ))}
           </div>

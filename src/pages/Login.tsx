@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Chrome } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Chrome, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -10,6 +10,9 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +26,7 @@ const Login: React.FC = () => {
       if (success) {
         navigate('/');
       } else {
-        setError('Invalid email or password');
+        setError('Invalid email or password. Please check your credentials and try again.');
       }
     } catch (err) {
       setError('Login failed. Please try again.');
@@ -40,17 +43,107 @@ const Login: React.FC = () => {
       await loginWithGoogle();
       // Note: The redirect will happen automatically, so we don't navigate here
     } catch (error: any) {
-      console.error('Google login failed:', error);
-      setError('Google login failed. Please try again.');
+      console.error('Google login error:', error);
+      setError('Google login failed. Please try again or contact support if the issue persists.');
       setGoogleLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) return;
+
+    // Simulate password reset
+    setTimeout(() => {
+      setResetSent(true);
+    }, 1000);
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <img src="/Zip Tales.jpg" alt="ZipTales" className="h-16 w-16 mx-auto rounded-full shadow-lg" />
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">
+              Reset Your Password
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Enter your email address and we'll send you a reset link
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+            {resetSent ? (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Check Your Email</h3>
+                <p className="text-gray-600 text-sm">
+                  We've sent a password reset link to <strong>{resetEmail}</strong>
+                </p>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetSent(false);
+                    setResetEmail('');
+                  }}
+                  className="text-pink-600 hover:text-pink-500 font-medium text-sm"
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div>
+                  <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      id="resetEmail"
+                      name="resetEmail"
+                      type="email"
+                      required
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                >
+                  Send Reset Link
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="text-pink-600 hover:text-pink-500 font-medium text-sm"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <img src="/ZipTails.jpg" alt="ZipTales" className="h-16 w-16 mx-auto rounded-full shadow-lg" />
+          <img src="/Zip Tales.jpg" alt="ZipTales" className="h-16 w-16 mx-auto rounded-full shadow-lg" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Welcome back to ZipTales
           </h2>
@@ -62,8 +155,9 @@ const Login: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-start space-x-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -126,9 +220,13 @@ const Login: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="text-pink-600 hover:text-pink-500">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-pink-600 hover:text-pink-500"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 

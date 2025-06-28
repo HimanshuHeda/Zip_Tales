@@ -14,7 +14,6 @@ interface NewsContextType {
   savedArticles: string[];
   toggleSaveArticle: (articleId: string) => Promise<void>;
   getArticleById: (id: string) => NewsArticle | undefined;
-  fetchNewsFromAPI: () => Promise<void>;
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -55,7 +54,12 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        // Fallback to mock data if database query fails
+        setArticles(getMockArticles());
+        return;
+      }
 
       // Transform data to match our interface
       const transformedArticles: NewsArticle[] = data.map(article => ({
@@ -81,64 +85,8 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setArticles(transformedArticles);
     } catch (error) {
       console.error('Error fetching news:', error);
-      // Fallback to mock data if database is not set up
+      // Fallback to mock data if there's any error
       setArticles(getMockArticles());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchNewsFromAPI = async () => {
-    setLoading(true);
-    try {
-      // Fetch news from News API
-      const newsResponse = await fetch(
-        `https://newsapi.org/v2/top-headlines?country=us&apiKey=${import.meta.env.VITE_NEWS_API_KEY}`
-      );
-      
-      if (!newsResponse.ok) {
-        throw new Error('Failed to fetch news from API');
-      }
-      
-      const newsData = await newsResponse.json();
-      
-      // Process and analyze each article
-      const processedArticles = await Promise.all(
-        newsData.articles.slice(0, 10).map(async (article: any) => {
-          const credibilityScore = await analyzeNews(article.content || article.description || '');
-          
-          return {
-            title: article.title,
-            summary: article.description || '',
-            content: article.content || article.description || '',
-            author: article.author || 'Unknown',
-            source: article.source?.name || 'Unknown',
-            published_at: article.publishedAt,
-            image_url: article.urlToImage,
-            category: 'General',
-            credibility_score: credibilityScore,
-            upvotes: 0,
-            downvotes: 0,
-            tags: [],
-            location: null,
-            verified: credibilityScore >= 70
-          };
-        })
-      );
-
-      // Insert into database
-      const { error } = await supabase
-        .from('articles')
-        .insert(processedArticles);
-
-      if (error) {
-        console.error('Error inserting articles:', error);
-      } else {
-        // Refresh articles
-        await fetchNews();
-      }
-    } catch (error) {
-      console.error('Error fetching news from API:', error);
     } finally {
       setLoading(false);
     }
@@ -154,7 +102,15 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Search error:', error);
+        // Fallback to local search
+        return articles.filter(article =>
+          article.title.toLowerCase().includes(query.toLowerCase()) ||
+          article.content.toLowerCase().includes(query.toLowerCase()) ||
+          article.summary.toLowerCase().includes(query.toLowerCase())
+        );
+      }
 
       return data.map(article => ({
         id: article.id,
@@ -195,7 +151,11 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('article_id')
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching saved articles:', error);
+        return;
+      }
+      
       setSavedArticles(data.map(item => item.article_id));
     } catch (error) {
       console.error('Error fetching saved articles:', error);
@@ -204,23 +164,20 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const analyzeNews = async (content: string): Promise<number> => {
     try {
-      // Use Google Gemini API for content analysis
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GOOGLE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: `Analyze this news content for credibility and return only a number between 0-100 representing the credibility score. Consider factors like source reliability, factual accuracy, bias, and sensationalism. Content: "${content}"`
-              }]
+      // Use Google AI API for content analysis
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Analyze this news content for credibility and return only a number between 0-100 representing the credibility score. Consider factors like source reliability, factual accuracy, bias, and sensationalism: "${content}"`
             }]
-          })
-        }
-      );
+          }]
+        })
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -240,26 +197,17 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const keywords = content.toLowerCase();
     let credibilityScore = 50;
 
-    // Positive indicators
+    if (keywords.includes('breaking') || keywords.includes('urgent')) {
+      credibilityScore -= 10;
+    }
     if (keywords.includes('study') || keywords.includes('research') || keywords.includes('university')) {
       credibilityScore += 20;
-    }
-    if (keywords.includes('confirmed') || keywords.includes('verified') || keywords.includes('official')) {
-      credibilityScore += 15;
-    }
-    if (keywords.includes('expert') || keywords.includes('professor') || keywords.includes('scientist')) {
-      credibilityScore += 10;
-    }
-
-    // Negative indicators
-    if (keywords.includes('breaking') || keywords.includes('urgent') || keywords.includes('shocking')) {
-      credibilityScore -= 10;
     }
     if (keywords.includes('anonymous') || keywords.includes('unnamed source')) {
       credibilityScore -= 15;
     }
-    if (keywords.includes('rumor') || keywords.includes('allegedly') || keywords.includes('unconfirmed')) {
-      credibilityScore -= 20;
+    if (keywords.includes('confirmed') || keywords.includes('verified') || keywords.includes('official')) {
+      credibilityScore += 15;
     }
 
     return Math.max(0, Math.min(100, credibilityScore));
@@ -291,7 +239,10 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
           vote_type: vote
         }]);
 
-      if (voteError) throw voteError;
+      if (voteError) {
+        console.error('Vote error:', voteError);
+        return;
+      }
 
       // Update article vote counts
       const article = articles.find(a => a.id === articleId);
@@ -307,7 +258,10 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
           })
           .eq('id', articleId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Update error:', updateError);
+          return;
+        }
 
         // Update local state
         setArticles(prev => prev.map(a => 
@@ -334,7 +288,10 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('user_id', user.id)
           .eq('article_id', articleId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error removing saved article:', error);
+          return;
+        }
         setSavedArticles(prev => prev.filter(id => id !== articleId));
       } else {
         const { error } = await supabase
@@ -344,7 +301,10 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
             article_id: articleId
           }]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error saving article:', error);
+          return;
+        }
         setSavedArticles(prev => [...prev, articleId]);
       }
     } catch (error) {
@@ -403,8 +363,7 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     voteOnArticle,
     savedArticles,
     toggleSaveArticle,
-    getArticleById,
-    fetchNewsFromAPI
+    getArticleById
   };
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;

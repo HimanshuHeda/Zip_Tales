@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, Share2, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
+import BlockchainVerification from '../components/BlockchainVerification';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,9 +44,9 @@ const ArticleDetail: React.FC = () => {
   };
 
   const getCredibilityIcon = (score: number) => {
-    if (score >= 70) return <CheckCircle className="h-5 w-5" />;
-    if (score >= 40) return <Shield className="h-5 w-5" />;
-    return <AlertTriangle className="h-5 w-5" />;
+    if (score >= 70) return <CheckCircle className="h-4 w-4" />;
+    if (score >= 40) return <Shield className="h-4 w-4" />;
+    return <AlertTriangle className="h-4 w-4" />;
   };
 
   const getCredibilityLabel = (score: number) => {
@@ -76,6 +77,16 @@ const ArticleDetail: React.FC = () => {
       navigator.clipboard.writeText(window.location.href);
       alert('Article URL copied to clipboard!');
     }
+  };
+
+  const handleBlockchainVerification = (verification: any) => {
+    // Update article with blockchain verification data
+    setArticle(prev => ({
+      ...prev,
+      blockchainTokenId: verification.tokenId,
+      blockchainVerified: true,
+      blockchainTxHash: verification.transactionHash
+    }));
   };
 
   const isSaved = savedArticles.includes(article.id);
@@ -132,6 +143,16 @@ const ArticleDetail: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Blockchain Badge */}
+              {article.blockchainVerified && (
+                <div className="absolute bottom-6 right-6">
+                  <div className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                    <Shield className="h-4 w-4" />
+                    <span>Blockchain Verified</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -159,16 +180,16 @@ const ArticleDetail: React.FC = () => {
               {/* Author and Source */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-6 text-sm text-gray-600">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <User className="h-4 w-4" />
                     <span className="font-medium">{article.author}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <span>•</span>
                     <span className="font-medium">{article.source}</span>
                   </div>
                   {article.location && (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
                       <MapPin className="h-4 w-4" />
                       <span>{article.location}</span>
                     </div>
@@ -207,6 +228,14 @@ const ArticleDetail: React.FC = () => {
               <div className="text-gray-700 leading-relaxed whitespace-pre-line">
                 {article.content}
               </div>
+            </div>
+
+            {/* Blockchain Verification Section */}
+            <div className="mb-8">
+              <BlockchainVerification 
+                article={article} 
+                onVerificationComplete={handleBlockchainVerification}
+              />
             </div>
 
             {/* Tags */}
@@ -273,7 +302,7 @@ const ArticleDetail: React.FC = () => {
                 <div className="bg-gradient-to-r from-pink-50 to-blue-50 rounded-lg p-6 text-center">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Join the Community</h3>
                   <p className="text-gray-600 mb-4">
-                    Sign in to vote on article credibility and help build a more trustworthy news ecosystem.
+                    Sign in to vote on article credibility, verify news on blockchain, and help build a more trustworthy news ecosystem.
                   </p>
                   <div className="flex justify-center space-x-4">
                     <Link

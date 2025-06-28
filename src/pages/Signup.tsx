@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Chrome } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Chrome, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Signup: React.FC = () => {
@@ -15,6 +15,7 @@ const Signup: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
@@ -45,21 +46,22 @@ const Signup: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     if (!agreedToTerms || !agreedToPrivacy) {
-      setError('Please agree to the Terms of Service and Privacy Policy');
+      setError('Please agree to the Terms of Service and Privacy Policy to continue.');
       setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match. Please check and try again.');
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError('Password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
@@ -67,12 +69,16 @@ const Signup: React.FC = () => {
     try {
       const success = await signup(formData.email, formData.password, formData.name);
       if (success) {
-        navigate('/profile?setup=true');
+        setSuccess('Account created successfully! Redirecting...');
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          navigate('/profile?setup=true');
+        }, 1500);
       } else {
-        setError('Signup failed. Please try again.');
+        setError('Signup failed. This email might already be registered or there was a server error.');
       }
     } catch (err) {
-      setError('Signup failed. Please try again.');
+      setError('Signup failed. Please try again or contact support if the issue persists.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +86,7 @@ const Signup: React.FC = () => {
 
   const handleGoogleSignup = async () => {
     if (!agreedToTerms || !agreedToPrivacy) {
-      setError('Please agree to the Terms of Service and Privacy Policy');
+      setError('Please agree to the Terms of Service and Privacy Policy to continue.');
       return;
     }
 
@@ -89,10 +95,10 @@ const Signup: React.FC = () => {
 
     try {
       await loginWithGoogle();
-      // Note: The redirect will happen automatically, so we don't navigate here
+      // Note: The redirect will happen automatically
     } catch (error: any) {
-      console.error('Google signup failed:', error);
-      setError('Google signup failed. Please try again.');
+      console.error('Google signup error:', error);
+      setError('Google signup failed. Please try again or contact support if the issue persists.');
       setGoogleLoading(false);
     }
   };
@@ -101,7 +107,7 @@ const Signup: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <img src="/ZipTails.jpg" alt="ZipTales" className="h-16 w-16 mx-auto rounded-full shadow-lg" />
+          <img src="/Zip Tales.jpg" alt="ZipTales" className="h-16 w-16 mx-auto rounded-full shadow-lg" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Join ZipTales Community
           </h2>
@@ -113,8 +119,16 @@ const Signup: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-start space-x-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm flex items-start space-x-2">
+                <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{success}</span>
               </div>
             )}
 
@@ -286,7 +300,7 @@ const Signup: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleSignup}
-              disabled={googleLoading || !agreedToTerms || !agreedToPrivacy}
+              disabled={!agreedToTerms || !agreedToPrivacy || googleLoading}
               className="w-full py-3 px-4 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
             >
               <Chrome className="h-5 w-5" />

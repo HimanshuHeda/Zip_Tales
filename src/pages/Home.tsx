@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, Shield, Users, Zap, Quote } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { TrendingUp, Shield, Users, Zap, Quote, Lock, UserPlus } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
+import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
 
 const Home: React.FC = () => {
   const { articles, loading, fetchNews } = useNews();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [currentQuote, setCurrentQuote] = useState(0);
 
   const quotes = [
@@ -28,11 +32,40 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleStartVerifying = () => {
+    if (isAuthenticated) {
+      navigate('/voting');
+    } else {
+      navigate('/signup');
+    }
+  };
+
+  const handleLearnMore = () => {
+    navigate('/about');
+  };
+
+  const handleCategoryClick = (category: string) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/categories/${category.toLowerCase()}`);
+  };
+
   const stats = [
     { icon: Shield, label: 'Articles Verified', value: '10,247', color: 'text-green-600' },
     { icon: Users, label: 'Active Verifiers', value: '2,834', color: 'text-blue-600' },
     { icon: TrendingUp, label: 'Accuracy Rate', value: '94.2%', color: 'text-pink-600' },
     { icon: Zap, label: 'Real-time Updates', value: '24/7', color: 'text-purple-600' }
+  ];
+
+  const categories = [
+    { name: 'Technology', color: 'from-blue-500 to-purple-500', icon: '💻' },
+    { name: 'Politics', color: 'from-red-500 to-pink-500', icon: '🏛️' },
+    { name: 'Sports', color: 'from-green-500 to-blue-500', icon: '⚽' },
+    { name: 'Entertainment', color: 'from-pink-500 to-purple-500', icon: '🎬' },
+    { name: 'Health', color: 'from-green-500 to-teal-500', icon: '🏥' },
+    { name: 'Science', color: 'from-indigo-500 to-blue-500', icon: '🔬' }
   ];
 
   return (
@@ -42,7 +75,7 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-blue-500/5"></div>
         <div className="relative max-w-7xl mx-auto text-center">
           <div className="mb-8">
-            <img src="/ZipTails.jpg" alt="ZipTales" className="h-20 w-20 mx-auto rounded-full shadow-lg" />
+            <img src="/Zip Tales.jpg" alt="ZipTales" className="h-20 w-20 mx-auto rounded-full shadow-lg" />
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
@@ -67,10 +100,16 @@ const Home: React.FC = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full font-semibold hover:from-pink-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg">
-              Start Verifying News
+            <button 
+              onClick={handleStartVerifying}
+              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full font-semibold hover:from-pink-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+            >
+              {isAuthenticated ? 'Start Verifying News' : 'Join & Start Verifying'}
             </button>
-            <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:border-pink-500 hover:text-pink-600 transition-all duration-200">
+            <button 
+              onClick={handleLearnMore}
+              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:border-pink-500 hover:text-pink-600 transition-all duration-200"
+            >
               Learn How It Works
             </button>
           </div>
@@ -94,8 +133,78 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Categories Section */}
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-pink-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Explore News Categories
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              {isAuthenticated 
+                ? "Browse verified news by category and discover content tailored to your interests"
+                : "Sign in to access personalized news categories and unlock all platform features"
+              }
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {categories.map((category, index) => (
+              <button
+                key={index}
+                onClick={() => handleCategoryClick(category.name)}
+                className={`relative p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 group ${
+                  !isAuthenticated ? 'cursor-pointer' : ''
+                }`}
+              >
+                <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center mb-4 mx-auto`}>
+                  <span className="text-2xl">{category.icon}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                
+                {!isAuthenticated && (
+                  <div className="absolute inset-0 bg-black/5 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-white rounded-lg p-3 shadow-lg flex items-center space-x-2">
+                      <Lock className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">Sign in to access</span>
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {!isAuthenticated && (
+            <div className="mt-8 text-center">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
+                <Lock className="h-12 w-12 text-pink-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Unlock All Categories</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Create a free account to access all news categories and personalized content.
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Create Free Account</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Featured News Section */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -132,7 +241,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gradient-to-br from-blue-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -190,10 +299,16 @@ const Home: React.FC = () => {
             Be part of a community that values truth, transparency, and verified journalism.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg">
-              Sign Up Free
+            <button 
+              onClick={handleStartVerifying}
+              className="px-8 py-4 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg"
+            >
+              {isAuthenticated ? 'Start Voting on News' : 'Sign Up Free'}
             </button>
-            <button className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200">
+            <button 
+              onClick={() => navigate('/submit')}
+              className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200"
+            >
               Submit Your First Article
             </button>
           </div>
