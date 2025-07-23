@@ -51,9 +51,28 @@ const Signup: React.FC = () => {
       [name]: value
     });
 
+
     // Real-time email validation
     if (name === 'email') {
       setEmailError(validateEmail(value));
+
+    if(e.target.name ==="email"){
+      validateEmail(e.target.value);
+    }
+  };
+
+  const validateEmail= (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if(email.includes(' ')){
+      setError('Email address cannot contain spaces (e.g. example@domain.com).');
+      return false;
+    } else if (!emailRegex.test(email)){
+      setError('Please enter a valid email address in the format: example@domain.com.');
+      return false;
+    } else{
+      setError('');
+      return true;
     }
   };
 
@@ -82,6 +101,11 @@ const Signup: React.FC = () => {
     if (emailValidationError) {
       setEmailError(emailValidationError);
       setError('Please fix the email address error before continuing.');
+
+    const email = formData.email;
+
+    if(!validateEmail(email)) {
+      setError('Please enter a valid email address in the format: example@domain.com.');
       setLoading(false);
       return;
     }
@@ -192,7 +216,7 @@ const Signup: React.FC = () => {
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
