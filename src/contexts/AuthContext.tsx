@@ -22,35 +22,14 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchUserProfile = async (userId: string) => {
+  // Fetch the user's profile from your database or fallback to basic session user
+  const fetchUserProfile = async (userId: string, fallbackUser?: any) => {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -59,42 +38,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        // If user doesn't exist in our users table, create one
-        if (error.code === 'PGRST116') {
-          const { data: authUser } = await supabase.auth.getUser();
-          if (authUser.user) {
-            const newUser = {
-              id: authUser.user.id,
-              email: authUser.user.email || '',
-              name: authUser.user.user_metadata?.full_name || authUser.user.user_metadata?.name || 'User',
-              reputation: 50,
-              interests: [],
-              bio: '',
-              location: ''
-            };
+        // If user doesn't exist in our users table, create one if fallbackUser is provided
+        if (error.code === 'PGRST116' && fallbackUser) {
+          const newUser = {
+            id: fallbackUser.id,
+            email: fallbackUser.email || '',
+            name:
+              fallbackUser.user_metadata?.full_name ||
+              fallbackUser.user_metadata?.name ||
+              'User',
+            reputation: 50,
+            interests: [],
+            bio: '',
+            location: '',
+          };
 
-            const { data: createdUser, error: createError } = await supabase
-              .from('users')
-              .insert([newUser])
-              .select()
-              .single();
+          const { data: createdUser, error: createError } = await supabase
+            .from('users')
+            .insert([newUser])
+            .select()
+            .single();
 
-            if (createError) {
-              console.error('Error creating user profile:', createError);
-            } else {
-              setUser(createdUser);
-            }
+          if (createError) {
+            console.error('Error creating user profile:', createError);
+            setUser(fallbackUser); // fallback to session user
+          } else {
+            setUser(createdUser);
           }
         } else {
           console.error('Error fetching user profile:', error);
+          if (fallbackUser) setUser(fallbackUser); // fallback to session user
         }
       } else {
         setUser(data);
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      if (fallbackUser) setUser(fallbackUser); // fallback to session user
     }
   };
+
+  useEffect(() => {
+    // On first mount, restore session if present
+    const restoreSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      console.log('Session on reload:', session);
+      if (session?.user) {
+        await fetchUserProfile(session.user.id, session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+    restoreSession();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session);
+      if (
+        (event === 'SIGNED_IN' ||
+          event === 'TOKEN_REFRESHED' ||
+          event === 'INITIAL_SESSION') &&
+        session?.user
+      ) {
+        fetchUserProfile(session.user.id, session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+    // eslint-disable-next-line
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -102,11 +122,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
       });
-      
+
       if (error) {
         console.error('Login error:', error);
         return false;
       }
+      // Session and auth state will be handled by the effect above
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -114,18 +135,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+  const signup = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<boolean> => {
     try {
-      // First, sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: name,
-            name: name
-          }
-        }
+            name: name,
+          },
+        },
       });
 
       if (error) {
@@ -134,7 +158,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Create user profile in our database
         const newUser = {
           id: data.user.id,
           email,
@@ -142,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           reputation: 50,
           interests: [],
           bio: '',
-          location: ''
+          location: '',
         };
 
         const { error: profileError } = await supabase
@@ -153,29 +176,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error creating user profile:', profileError);
         }
 
-        // If email confirmation is disabled, the user should be automatically signed in
-        // If email confirmation is enabled, we need to handle that case
-        if (data.session) {
-          // User is automatically signed in
-          setUser(newUser);
-          return true;
-        } else {
-          // Email confirmation required - but we'll still try to sign them in
-          // This handles the case where email confirmation is disabled in Supabase
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (!signInError) {
-            return true;
-          } else {
-            console.log('Email confirmation may be required');
-            return true; // Still return true as signup was successful
-          }
-        }
+        // Session and auth state will be handled by the effect above
+        return true;
       }
 
+      // In some cases, user is not returned but no error (shouldn't happen)
       return true;
     } catch (error) {
       console.error('Signup error:', error);
@@ -192,10 +197,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
-        }
+          },
+        },
       });
-      
+
       if (error) {
         console.error('Google login error:', error);
         throw error;
@@ -248,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateProfile,
     isAuthenticated: !!user,
-    loading
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
