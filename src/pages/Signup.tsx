@@ -16,6 +16,7 @@ const Signup: React.FC = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
@@ -27,11 +28,33 @@ const Signup: React.FC = () => {
     'Science', 'Business', 'Environment', 'Education', 'Travel'
   ];
 
+  const validateEmail = (email: string): string => {
+    if (!email) return '';
+    
+    if (email.includes(' ')) {
+      return 'Email address cannot contain spaces.';
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address.';
+    }
+    
+    return '';
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+
+    // Real-time email validation
+    if (name === 'email') {
+      setEmailError(validateEmail(value));
 
     if(e.target.name ==="email"){
       validateEmail(e.target.value);
@@ -73,6 +96,12 @@ const Signup: React.FC = () => {
       return;
     }
 
+    // Validate email before submission
+    const emailValidationError = validateEmail(formData.email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      setError('Please fix the email address error before continuing.');
+
     const email = formData.email;
 
     if(!validateEmail(email)) {
@@ -104,7 +133,7 @@ const Signup: React.FC = () => {
       } else {
         setError('Signup failed. This email might already be registered or there was a server error.');
       }
-    } catch (err) {
+    } catch {
       setError('Signup failed. Please try again or contact support if the issue persists.');
     } finally {
       setLoading(false);
@@ -123,7 +152,7 @@ const Signup: React.FC = () => {
     try {
       await loginWithGoogle();
       // Note: The redirect will happen automatically
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Google signup error:', error);
       setError('Google signup failed. Please try again or contact support if the issue persists.');
       setGoogleLoading(false);
@@ -191,10 +220,18 @@ const Signup: React.FC = () => {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent ${
+                    emailError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your email"
                 />
               </div>
+              {emailError && (
+                <div className="mt-2 text-sm text-red-600 flex items-start space-x-1">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>{emailError}</span>
+                </div>
+              )}
             </div>
 
             <div>
