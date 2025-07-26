@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, Chrome, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Signup: React.FC = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -338,9 +341,15 @@ const Signup: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-pink-600 hover:text-pink-500 font-medium">
+              <span
+                className="text-pink-600 hover:text-pink-500 font-medium cursor-pointer"
+                onClick={() => {
+                  navigate('/login');
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+                }}
+              >
                 Sign in here
-              </Link>
+              </span>
             </p>
           </div>
         </div>
