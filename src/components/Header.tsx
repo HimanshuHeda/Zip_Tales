@@ -234,7 +234,7 @@ const Header: React.FC = () => {
                   className="px-4 py-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full hover:from-pink-600 hover:to-blue-600 transition-all duration-200 cursor-pointer"
                   onClick={() => {
                     navigate('/signup');
-                    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 >
                   Sign Up
