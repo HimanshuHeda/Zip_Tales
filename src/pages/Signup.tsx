@@ -345,7 +345,7 @@ const Signup: React.FC = () => {
                 className="text-pink-600 hover:text-pink-500 font-medium cursor-pointer"
                 onClick={() => {
                   navigate('/login');
-                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
                 Sign in here
