@@ -311,7 +311,7 @@ const Home: React.FC = () => {
             <button 
               onClick={() => {
                 navigate('/submit');
-                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200"
             >
