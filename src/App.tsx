@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NewsProvider } from './contexts/NewsContext';
@@ -21,41 +20,47 @@ import NotFound from './pages/NotFound';
 import ArticleDetail from './pages/ArticleDetail';
 import AuthCallback from './pages/AuthCallback';
 import Chatbot from './components/Chatbot';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   return (
-    <AuthProvider>
-      <NewsProvider>
-        <BlockchainProvider>
-          <Router>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
-              <Header />
-              <main className="pt-20">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/submit" element={<SubmitNews />} />
-                  <Route path="/voting" element={<Voting />} />
-                  <Route path="/saved" element={<Saved />} />
-                  <Route path="/categories/:category" element={<Categories />} />
-                  <Route path="/article/:id" element={<ArticleDetail />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-              <Chatbot />
-            </div>
-          </Router>
-        </BlockchainProvider>
-      </NewsProvider>
-    </AuthProvider>
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
+      {/* Theme Toggle Button */}
+      <ThemeToggle />
+
+      <AuthProvider>
+        <NewsProvider>
+          <BlockchainProvider>
+            <Router>
+              <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+                <Header />
+                <main className="pt-20">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/submit" element={<SubmitNews />} />
+                    <Route path="/voting" element={<Voting />} />
+                    <Route path="/saved" element={<Saved />} />
+                    <Route path="/categories/:category" element={<Categories />} />
+                    <Route path="/article/:id" element={<ArticleDetail />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+                <Footer />
+                <Chatbot />
+              </div>
+            </Router>
+          </BlockchainProvider>
+        </NewsProvider>
+      </AuthProvider>
+    </div>
   );
 }
 
