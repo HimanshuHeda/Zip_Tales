@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { CredibilityWeights } from '@/config/credibilityWeights';
 
 interface Message {
   id: string;
@@ -30,36 +31,20 @@ const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const analyzeNewsContent = async (content: string): Promise<string> => {
-    // Simulate AI analysis
-    const keywords = content.toLowerCase();
-    let credibilityScore = 50;
-    let analysis = '';
+  import { calculateCredibilityScore } from '@/utils/calculateCredibilityScore'; // ⬅️ Add this import at the top
 
-    // Simple keyword-based analysis
-    if (keywords.includes('breaking') || keywords.includes('urgent')) {
-      credibilityScore -= 10;
-      analysis += 'Sensational language detected. ';
-    }
+const analyzeNewsContent = async (content: string): Promise<string> => {
+  const { score, analysis } = calculateCredibilityScore(content);
 
-    if (keywords.includes('study') || keywords.includes('research') || keywords.includes('university')) {
-      credibilityScore += 20;
-      analysis += 'Academic sources mentioned. ';
-    }
+  return `Based on my analysis:
 
-    if (keywords.includes('anonymous') || keywords.includes('unnamed source')) {
-      credibilityScore -= 15;
-      analysis += 'Anonymous sources present. ';
-    }
+📊 **Credibility Score: ${score}%**
 
-    if (keywords.includes('confirmed') || keywords.includes('verified') || keywords.includes('official')) {
-      credibilityScore += 15;
-      analysis += 'Official confirmation language used. ';
-    }
+🔍 **Analysis:** ${analysis || 'Standard news content detected.'}
 
-    credibilityScore = Math.max(0, Math.min(100, credibilityScore));
-
-    return `Based on my analysis:
+${score >= 70 ? '✅ **Status: Likely Trustworthy**' :
+  score >= 40 ? '⚠️ **Status: Requires Verification**' :
+  '❌ **Status: High Risk - Verify Carefully**'}
 
 📊 **Credibility Score: ${credibilityScore}%**
 
