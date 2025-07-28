@@ -1,4 +1,3 @@
-// src/config/credibilityWeights.ts
 export const CredibilityWeights = {
   baseScore: 50,
   sensationalPenalty: -10,
@@ -6,4 +5,3 @@ export const CredibilityWeights = {
   anonymousPenalty: -15,
   officialBoost: 15,
 };
-
