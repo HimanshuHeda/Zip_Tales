@@ -300,13 +300,19 @@ const Home: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={handleStartVerifying}
+              onClick={() => {
+                handleStartVerifying();
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+              }}
               className="px-8 py-4 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg"
             >
               {isAuthenticated ? 'Start Voting on News' : 'Sign Up Free'}
             </button>
             <button 
-              onClick={() => navigate('/submit')}
+              onClick={() => {
+                navigate('/submit');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200"
             >
               Submit Your First Article
