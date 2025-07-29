@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
-import { CredibilityWeights } from '@/config/credibilityWeights';
+// If you want to fix the error, make sure the import paths are correct and the files exist.
+// If your project uses the "@" alias for the src directory, ensure your tsconfig.json or jsconfig.json is configured properly.
+// Otherwise, use relative imports like below (assuming the file structure):
+
+import { CredibilityWeights } from '../utils/credibiltyweights';
+import { calculateCredibilityScore } from '../utils/calculatecredibilityscore';
 
 interface Message {
   id: string;
@@ -31,7 +36,6 @@ const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  import { calculateCredibilityScore } from '@/utils/calculateCredibilityScore'; // ⬅️ Add this import at the top
 
 const analyzeNewsContent = async (content: string): Promise<string> => {
   const { score, analysis } = calculateCredibilityScore(content);
@@ -46,20 +50,12 @@ ${score >= 70 ? '✅ **Status: Likely Trustworthy**' :
   score >= 40 ? '⚠️ **Status: Requires Verification**' :
   '❌ **Status: High Risk - Verify Carefully**'}
 
-📊 **Credibility Score: ${credibilityScore}%**
-
-🔍 **Analysis:** ${analysis || 'Standard news content detected.'}
-
-${credibilityScore >= 70 ? '✅ **Status: Likely Trustworthy**' : 
-  credibilityScore >= 40 ? '⚠️ **Status: Requires Verification**' : 
-  '❌ **Status: High Risk - Verify Carefully**'}
-
 **Recommendations:**
 - Cross-check with multiple reliable sources
 - Look for official statements or documentation
 - Check the author's credentials and publication history
 - Verify any statistical claims with original sources`;
-  };
+};
 
   const generateBotResponse = async (userMessage: string): Promise<string> => {
     const message = userMessage.toLowerCase();

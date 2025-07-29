@@ -165,7 +165,13 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const analyzeNews = async (content: string): Promise<number> => {
     try {
       // Use Google AI API for content analysis
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GOOGLE_API_KEY}`, {
+      const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+      if (!apiKey) {
+        console.warn('Google API key not found, using fallback analysis');
+        return simulateAnalysis(content);
+      }
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
