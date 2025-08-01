@@ -75,7 +75,7 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-blue-500/5"></div>
         <div className="relative max-w-7xl mx-auto text-center">
           <div className="mb-8">
-            <img src="/Zip Tales.jpg" alt="ZipTales" className="h-20 w-20 mx-auto rounded-full shadow-lg" />
+            <img src="/Zip Tales.jpg" alt="ZipTales" className="h-20 w-20 mx-auto rounded-full shadow-lg transition-transform duration-500 hover:scale-110 hover:rotate-6" />
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
@@ -86,11 +86,11 @@ const Home: React.FC = () => {
           
           <div className="h-16 flex items-center justify-center mb-8">
             <div className="flex items-center space-x-2 text-xl md:text-2xl text-gray-600">
-              <Quote className="h-6 w-6 text-pink-500" />
+              <Quote className="h-6 w-6 text-pink-500 transition-transform duration-300 hover:scale-110" />
               <span className="font-medium transition-all duration-500">
                 {quotes[currentQuote]}
               </span>
-              <Quote className="h-6 w-6 text-blue-500 rotate-180" />
+              <Quote className="h-6 w-6 text-blue-500 rotate-180 transition-transform duration-300 hover:scale-110" />
             </div>
           </div>
 
@@ -102,13 +102,13 @@ const Home: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={handleStartVerifying}
-              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full font-semibold hover:from-pink-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-full font-semibold hover:from-pink-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
             >
               {isAuthenticated ? 'Start Verifying News' : 'Join & Start Verifying'}
             </button>
             <button 
               onClick={handleLearnMore}
-              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:border-pink-500 hover:text-pink-600 transition-all duration-200"
+              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full font-semibold hover:border-pink-500 hover:text-pink-600 transition-all duration-300 hover:bg-pink-50 hover:shadow-md transform hover:scale-105"
             >
               Learn How It Works
             </button>
@@ -121,12 +121,12 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4 ${stat.color}`}>
-                  <stat.icon className="h-6 w-6" />
+              <div key={index} className="text-center group">
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4 ${stat.color} transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:bg-gradient-to-r group-hover:from-pink-100 group-hover:to-blue-100`}>
+                  <stat.icon className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-2 transition-all duration-300 group-hover:scale-105">{stat.value}</div>
+                <div className="text-sm text-gray-600 transition-colors duration-300 group-hover:text-gray-800">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -137,7 +137,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-gradient-to-br from-gray-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 transition-all duration-300 hover:scale-105">
               Explore News Categories
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -153,18 +153,29 @@ const Home: React.FC = () => {
               <button
                 key={index}
                 onClick={() => handleCategoryClick(category.name)}
-                className={`relative p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 group ${
+                className={`relative p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-500 group transform hover:scale-105 hover:-translate-y-2 ${
                   !isAuthenticated ? 'cursor-pointer' : ''
                 }`}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(249,250,251,1) 100%)'
+                }}
               >
-                <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center mb-4 mx-auto`}>
-                  <span className="text-2xl">{category.icon}</span>
+                {/* Hover background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-blue-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Icon container with enhanced hover effects */}
+                <div className={`relative w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center mb-4 mx-auto transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`}>
+                  <span className="text-2xl transition-transform duration-500 group-hover:scale-110">{category.icon}</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                
+                <h3 className="relative text-lg font-semibold text-gray-900 mb-2 transition-all duration-300 group-hover:text-pink-600">{category.name}</h3>
+                
+                {/* Subtle border animation */}
+                <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-pink-200 transition-all duration-500"></div>
                 
                 {!isAuthenticated && (
-                  <div className="absolute inset-0 bg-black/5 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-white rounded-lg p-3 shadow-lg flex items-center space-x-2">
+                  <div className="absolute inset-0 bg-black/5 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-sm">
+                    <div className="bg-white rounded-lg p-3 shadow-lg flex items-center space-x-2 transform scale-90 group-hover:scale-100 transition-transform duration-300">
                       <Lock className="h-4 w-4 text-gray-600" />
                       <span className="text-sm font-medium text-gray-700">Sign in to access</span>
                     </div>
@@ -176,8 +187,8 @@ const Home: React.FC = () => {
 
           {!isAuthenticated && (
             <div className="mt-8 text-center">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
-                <Lock className="h-12 w-12 text-pink-500 mx-auto mb-4" />
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto transition-all duration-500 hover:shadow-xl hover:scale-105 transform">
+                <Lock className="h-12 w-12 text-pink-500 mx-auto mb-4 transition-transform duration-300 hover:scale-110" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Unlock All Categories</h3>
                 <p className="text-gray-600 text-sm mb-4">
                   Create a free account to access all news categories and personalized content.
@@ -185,14 +196,14 @@ const Home: React.FC = () => {
                 <div className="space-y-2">
                   <button
                     onClick={() => navigate('/signup')}
-                    className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                    className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2 transform"
                   >
-                    <UserPlus className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                     <span>Create Free Account</span>
                   </button>
                   <button
                     onClick={() => navigate('/login')}
-                    className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all duration-300 hover:border-pink-300 hover:shadow-md transform hover:scale-105"
                   >
                     Sign In
                   </button>
@@ -207,7 +218,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 transition-all duration-300 hover:scale-105">
               Latest Verified News
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -218,7 +229,7 @@ const Home: React.FC = () => {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse transition-all duration-300 hover:shadow-md">
                   <div className="h-48 bg-gray-200"></div>
                   <div className="p-6">
                     <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -244,7 +255,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-gradient-to-br from-blue-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 transition-all duration-300 hover:scale-105">
               How ZipTales Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -253,34 +264,34 @@ const Home: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="h-8 w-8 text-white" />
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3">
+                <Shield className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Analysis</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 transition-all duration-300 group-hover:text-pink-600">AI Analysis</h3>
+              <p className="text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
                 Our advanced AI analyzes news content for credibility indicators, 
                 source reliability, and factual accuracy using multiple data points.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-8 w-8 text-white" />
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3">
+                <Users className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Community Voting</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 transition-all duration-300 group-hover:text-blue-600">Community Voting</h3>
+              <p className="text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
                 Verified users vote on article credibility. Votes are weighted by 
                 user reputation to ensure quality community-driven verification.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TrendingUp className="h-8 w-8 text-white" />
+            <div className="text-center group">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3">
+                <TrendingUp className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Real-time Scoring</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 transition-all duration-300 group-hover:text-purple-600">Real-time Scoring</h3>
+              <p className="text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
                 Dynamic credibility scores update in real-time based on AI analysis, 
                 community votes, and verification from trusted sources.
               </p>
@@ -292,7 +303,7 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 transition-all duration-300 hover:scale-105">
             Join the Fight Against Misinformation
           </h2>
           <p className="text-xl text-pink-100 mb-8">
@@ -304,7 +315,7 @@ const Home: React.FC = () => {
                 handleStartVerifying();
                 setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
               }}
-              className="px-8 py-4 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg"
+              className="px-8 py-4 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
             >
               {isAuthenticated ? 'Start Voting on News' : 'Sign Up Free'}
             </button>
@@ -313,7 +324,7 @@ const Home: React.FC = () => {
                 navigate('/submit');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200"
+              className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold hover:bg-white hover:text-pink-600 transition-all duration-300 hover:shadow-lg transform hover:scale-105"
             >
               Submit Your First Article
             </button>

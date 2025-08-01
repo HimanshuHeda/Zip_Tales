@@ -1,5 +1,5 @@
 // src/utils/calculateCredibilityScore.ts
-import { CredibilityWeights } from '@/config/credibilityWeights';
+import { CredibilityWeights } from './credibiltyweights';
 
 export function calculateCredibilityScore(content: string) {
   const keywords = content.toLowerCase();
