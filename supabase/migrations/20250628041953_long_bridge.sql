@@ -201,6 +201,7 @@ CREATE INDEX IF NOT EXISTS idx_articles_credibility_score ON articles(credibilit
 CREATE INDEX IF NOT EXISTS idx_votes_article_id ON votes(article_id);
 CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_articles_user_id ON saved_articles(user_id);
+CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at DESC);
 
 -- Insert sample articles
 INSERT INTO articles (title, summary, content, author, source, category, credibility_score, upvotes, downvotes, tags, location, verified, image_url) VALUES

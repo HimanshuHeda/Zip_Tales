@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Shield, Users, Zap, Quote, Lock, UserPlus } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
+import { NewsFilters, Filters } from '../components/NewsFilters';
 
 const Home: React.FC = () => {
   const { articles, loading, fetchNews } = useNews();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [currentQuote, setCurrentQuote] = useState(0);
+
+  const [filters, setFilters] = useState<Filters>({
+    dateRange: 'all',
+    category: 'all',
+  });
 
   const quotes = [
     "Breaking News, Not Trust.",
@@ -22,8 +28,8 @@ const Home: React.FC = () => {
   ];
 
   useEffect(() => {
-    fetchNews();
-  }, []);
+    fetchNews(filters);
+  }, [filters]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -31,6 +37,29 @@ const Home: React.FC = () => {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  // const filteredArticles = useMemo(() => {
+  //   return articles.filter(article => {
+  //     if (filters.category !== 'all' && article.category !== filters.category) {
+  //       return false;
+  //     }
+
+  //     if (filters.dateRange !== 'all') {
+  //       const articleDate = new Date(article.publishedAt);
+  //       const now = new Date();
+        
+  //       if (filters.dateRange === 'today') {
+  //         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  //         if (articleDate < today) return false;
+  //       } else if (filters.dateRange === 'last7days') {
+  //         const sevenDaysAgo = new Date();
+  //         sevenDaysAgo.setDate(now.getDate() - 7);
+  //         if (articleDate < sevenDaysAgo) return false;
+  //       }
+  //     }
+  //     return true;
+  //   });
+  // }, [articles, filters]);
 
   const handleStartVerifying = () => {
     if (isAuthenticated) {
@@ -215,6 +244,8 @@ const Home: React.FC = () => {
             </p>
           </div>
 
+          <NewsFilters filters={filters} onFilterChange={setFilters} />
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
@@ -231,11 +262,25 @@ const Home: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.slice(0, 6).map((article) => (
-                <NewsCard key={article.id} article={article} />
-              ))}
-            </div>
+            <>
+              {/* --- 4. RENDER THE FILTERED ARTICLES --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* {filteredArticles.map((article) => (
+                  <NewsCard key={article.id} article={article} />
+                ))} */}
+                {articles.map((article) => (
+                  <NewsCard key={article.id} article={article} />
+                ))}
+
+              </div>
+              
+              {/* Message for when no articles match */}
+              {!loading && articles.length === 0 && (
+                 <div className="text-center py-16 col-span-1 md:col-span-2 lg:col-span-3">
+                    <p className="text-gray-600 text-lg">No articles match your current filters.</p>
+                 </div>
+              )}
+            </>
           )}
         </div>
       </section>

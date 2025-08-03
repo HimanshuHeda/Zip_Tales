@@ -2,12 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, type NewsArticle } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
+export interface Filters {
+  dateRange: string;
+  category: string;
+}
+
 interface NewsContextType {
   articles: NewsArticle[];
   loading: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  fetchNews: (category?: string) => Promise<void>;
+  fetchNews: (filters?: Filters) => Promise<void>;
   searchNews: (query: string) => Promise<NewsArticle[]>;
   analyzeNews: (content: string) => Promise<number>;
   voteOnArticle: (articleId: string, vote: 'up' | 'down') => Promise<void>;
@@ -40,17 +45,39 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  const fetchNews = async (category?: string) => {
-    setLoading(true);
+  const fetchNews = async(filters: Filters = { dateRange: 'all', category: 'all' }) => {
+  setLoading(true);
     try {
       let query = supabase
         .from('articles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (category) {
-        query = query.eq('category', category);
+      // --- NEW DYNAMIC FILTERING LOGIC ---
+
+    // 1. Category Filter
+    if (filters.category && filters.category !== 'all') {
+      query = query.eq('category', filters.category);
+    }
+
+    // 2. Date Range Filter
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      let fromDate: Date | undefined;
+
+      if (filters.dateRange === 'today') {
+        fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (filters.dateRange === 'last7days') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        fromDate = sevenDaysAgo;
       }
+      
+      if (fromDate) {
+        // Use the existing 'created_at' column for the query
+         query = query.gte('published_at', fromDate.toISOString());
+      }
+    }
 
       const { data, error } = await query;
 
