@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
-//import { CredibilityWeights } from '@/config/credibilityWeights'; 
-import { calculateCredibilityScore } from '../utils/calculatecredibilityscore'; // Adjust the import path as needed
+import { calculateCredibilityScore } from '../utils/calculateCredibilityScore';
+
 
 interface Message {
   id: string;
@@ -32,7 +32,7 @@ const Chatbot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const analyzeNewsContent = async (content: string): Promise<string> => {
+const analyzeNewsContent = async (content: string): Promise<string> => {
     // Note: There was duplicate code here, I have cleaned it up.
     const { score, analysis } = calculateCredibilityScore(content);
 
@@ -51,7 +51,7 @@ ${score >= 70 ? '✅ **Status: Likely Trustworthy**' :
 - Look for official statements or documentation
 - Check the author's credentials and publication history
 - Verify any statistical claims with original sources`;
-  };
+};
 
   const generateBotResponse = async (userMessage: string): Promise<string> => {
     const message = userMessage.toLowerCase();
