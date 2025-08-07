@@ -70,6 +70,18 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Demo Mode Notice */}
+      {!isAuthenticated && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-green-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-center space-x-2 text-sm text-green-800">
+              <span>🎉</span>
+              <span>New features available! Try <button onClick={() => navigate('/login')} className="font-semibold underline hover:text-green-600">Demo Mode</button> to test bookmarks and topic following.</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-blue-500/5"></div>

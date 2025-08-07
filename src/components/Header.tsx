@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, User, LogOut, Bookmark, Vote, Lock } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, Bookmark, Vote, Lock, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNews } from '../contexts/NewsContext';
 
@@ -10,8 +10,8 @@ const Header: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
-  const { searchNews } = useNews();
+  const { user, logout, isAuthenticated, isDemoMode, disableDemoMode } = useAuth();
+  const { searchNews, followedTopics, toggleFollowTopic } = useNews();
   const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -82,6 +82,11 @@ const Header: React.FC = () => {
               </span>
               <span className="text-xs text-gray-500 -mt-1 transition-colors duration-300 group-hover:text-gray-700">Breaking News, Not Trust</span>
             </div>
+            {isDemoMode && (
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full border border-yellow-200">
+                DEMO MODE
+              </span>
+            )}
           </Link>
 
           {/* Search Bar */}
@@ -162,21 +167,35 @@ const Header: React.FC = () => {
                       </Link>
                     </div>
                   )}
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategoryClick(category)}
-                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 hover:text-pink-600 first:rounded-t-lg last:rounded-b-lg transition-all duration-300 hover:shadow-sm ${
-                        !isAuthenticated ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'
-                      }`}
-                      disabled={!isAuthenticated}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{category}</span>
-                        {!isAuthenticated && <Lock className="h-3 w-3 transition-all duration-300" />}
-                      </div>
-                    </button>
-                  ))}
+                  {categories.map((category) => {
+                    const isFollowing = followedTopics.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          if (isAuthenticated) {
+                            toggleFollowTopic(category);
+                          } else {
+                            handleCategoryClick(category);
+                          }
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 hover:text-pink-600 first:rounded-t-lg last:rounded-b-lg transition-all duration-300 hover:shadow-sm ${
+                          !isAuthenticated ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'
+                        }`}
+                        disabled={!isAuthenticated}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{category}</span>
+                          <div className="flex items-center space-x-2">
+                            {isAuthenticated && isFollowing && (
+                              <Heart className="h-3 w-3 text-pink-500 fill-current transition-all duration-300" />
+                            )}
+                            {!isAuthenticated && <Lock className="h-3 w-3 transition-all duration-300" />}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -197,6 +216,14 @@ const Header: React.FC = () => {
                 >
                   <Bookmark className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                   <span className="relative z-10">Saved</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
+                </Link>
+                <Link 
+                  to="/following" 
+                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative"
+                >
+                  <Heart className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                  <span className="relative z-10">Following</span>
                   <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
                 </Link>
               </>
@@ -227,6 +254,17 @@ const Header: React.FC = () => {
                   >
                     Submit News
                   </Link>
+                  {isDemoMode && (
+                    <button
+                      onClick={() => {
+                        disableDemoMode();
+                        navigate('/');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 hover:text-pink-600 transition-all duration-300"
+                    >
+                      Exit Demo Mode
+                    </button>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 hover:text-pink-600 rounded-b-lg transition-all duration-300"
@@ -305,23 +343,37 @@ const Header: React.FC = () => {
                     </div>
                   )}
                 </div>
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryClick(category)}
-                    className={`block w-full text-left pl-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 rounded-lg px-3 py-2 ${
-                      !isAuthenticated 
-                        ? 'text-gray-400 cursor-not-allowed' 
-                        : 'text-gray-700 hover:text-pink-600'
-                    }`}
-                    disabled={!isAuthenticated}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>{category}</span>
-                      {!isAuthenticated && <Lock className="h-3 w-3 transition-all duration-300" />}
-                    </div>
-                  </button>
-                ))}
+                {categories.map((category) => {
+                    const isFollowing = followedTopics.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          if (isAuthenticated) {
+                            toggleFollowTopic(category);
+                          } else {
+                            handleCategoryClick(category);
+                          }
+                        }}
+                        className={`block w-full text-left pl-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 rounded-lg px-3 py-2 ${
+                          !isAuthenticated 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : 'text-gray-700 hover:text-pink-600'
+                        }`}
+                        disabled={!isAuthenticated}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{category}</span>
+                          <div className="flex items-center space-x-2">
+                            {isAuthenticated && isFollowing && (
+                              <Heart className="h-3 w-3 text-pink-500 fill-current transition-all duration-300" />
+                            )}
+                            {!isAuthenticated && <Lock className="h-3 w-3 transition-all duration-300" />}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
               </div>
 
               {isAuthenticated && (
@@ -341,6 +393,14 @@ const Header: React.FC = () => {
                   >
                     <Bookmark className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                     <span>Saved</span>
+                  </Link>
+                  <Link
+                    to="/following"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:bg-blue-50 rounded-lg px-3 py-2"
+                  >
+                    <Heart className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                    <span>Following</span>
                   </Link>
                   <Link
                     to="/submit"
