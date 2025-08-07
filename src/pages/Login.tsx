@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, enableDemoMode } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,14 +22,10 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const success = await login(email, password);
-      if (success) {
-        navigate('/');
-      } else {
-        setError('Invalid email or password. Please check your credentials and try again.');
-      }
+      await login(email, password);
+      navigate('/');
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('Invalid email or password. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -47,6 +43,11 @@ const Login: React.FC = () => {
       setError('Google login failed. Please try again or contact support if the issue persists.');
       setGoogleLoading(false);
     }
+  };
+
+  const handleDemoMode = () => {
+    enableDemoMode();
+    navigate('/');
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -256,6 +257,38 @@ const Login: React.FC = () => {
               <Chrome className="h-5 w-5" />
               <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleDemoMode}
+              className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <Chrome className="h-5 w-5" />
+              <span>🚀 Try Demo Mode (Recommended)</span>
+            </button>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Demo Mode Recommended
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>Regular login requires Supabase setup. Use Demo Mode to test all features immediately!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or try regular login</span>
+              </div>
+            </div>
           </form>
 
           <div className="mt-6 text-center">

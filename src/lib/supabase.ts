@@ -58,3 +58,10 @@ export interface SavedArticle {
   article_id: string;
   created_at: string;
 }
+
+export interface FollowedTopic {
+  id: string;
+  user_id: string;
+  topic: string;
+  created_at: string;
+}

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, Share2, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, Share2, Shield, AlertTriangle, CheckCircle, Heart, HeartOff } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import BlockchainVerification from '../components/BlockchainVerification';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getArticleById, voteOnArticle, savedArticles, toggleSaveArticle } = useNews();
+  const { getArticleById, voteOnArticle, savedArticles, toggleSaveArticle, followedTopics, toggleFollowTopic } = useNews();
   const { isAuthenticated } = useAuth();
   const [article, setArticle] = useState<any>(null);
   const [hasVoted, setHasVoted] = useState(false);
@@ -160,9 +160,15 @@ const ArticleDetail: React.FC = () => {
             {/* Article Header */}
             <div className="mb-6">
               <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-                <span className="px-3 py-1 bg-gradient-to-r from-pink-100 to-blue-100 text-pink-700 rounded-full font-medium">
-                  {article.category}
-                </span>
+                <div 
+                  className="flex items-center space-x-1 px-3 py-1 bg-gradient-to-r from-pink-100 to-blue-100 text-pink-700 rounded-full font-medium cursor-pointer hover:from-pink-200 hover:to-blue-200 transition-all duration-300"
+                  onClick={() => isAuthenticated && toggleFollowTopic(article.category)}
+                >
+                  <span>{article.category}</span>
+                  {isAuthenticated && followedTopics.includes(article.category) && (
+                    <Heart className="h-3 w-3 fill-current text-pink-500" />
+                  )}
+                </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="h-4 w-4" />
                   <span>{formatDate(article.publishedAt)}</span>
@@ -243,14 +249,31 @@ const ArticleDetail: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag: string, index: number) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  {article.tags.map((tag: string, index: number) => {
+                    const isFollowing = followedTopics.includes(tag);
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-all duration-300 cursor-pointer group"
+                        onClick={() => isAuthenticated && toggleFollowTopic(tag)}
+                      >
+                        <span>#{tag}</span>
+                        {isAuthenticated && (
+                          <button
+                            className={`transition-all duration-300 hover:scale-110 ${
+                              isFollowing ? 'text-pink-500' : 'text-gray-400 group-hover:text-pink-500'
+                            }`}
+                          >
+                            {isFollowing ? (
+                              <Heart className="h-3 w-3 fill-current" />
+                            ) : (
+                              <HeartOff className="h-3 w-3" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
