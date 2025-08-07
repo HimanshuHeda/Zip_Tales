@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, ExternalLink, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, ExternalLink, Shield, AlertTriangle, CheckCircle, Heart, HeartOff } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,7 +11,7 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ article, showFullContent = false }) => {
   const [showContent, setShowContent] = useState(showFullContent);
-  const { voteOnArticle, savedArticles, toggleSaveArticle } = useNews();
+  const { voteOnArticle, savedArticles, toggleSaveArticle, followedTopics, toggleFollowTopic } = useNews();
   const { isAuthenticated } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
 
@@ -141,14 +141,31 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, showFullContent = false })
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {article.tags.map((tag: string, index: number) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs transition-all duration-300 hover:bg-pink-100 hover:text-pink-700 hover:scale-105 cursor-pointer"
-              >
-                #{tag}
-              </span>
-            ))}
+            {article.tags.map((tag: string, index: number) => {
+              const isFollowing = followedTopics.includes(tag);
+              return (
+                <div
+                  key={index}
+                  className="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs transition-all duration-300 hover:bg-pink-100 hover:text-pink-700 hover:scale-105 cursor-pointer group"
+                  onClick={() => isAuthenticated && toggleFollowTopic(tag)}
+                >
+                  <span>#{tag}</span>
+                  {isAuthenticated && (
+                    <button
+                      className={`transition-all duration-300 hover:scale-110 ${
+                        isFollowing ? 'text-pink-500' : 'text-gray-400 group-hover:text-pink-500'
+                      }`}
+                    >
+                      {isFollowing ? (
+                        <Heart className="h-3 w-3 fill-current" />
+                      ) : (
+                        <HeartOff className="h-3 w-3" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

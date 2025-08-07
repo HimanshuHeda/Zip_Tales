@@ -14,6 +14,9 @@ interface NewsContextType {
   savedArticles: string[];
   toggleSaveArticle: (articleId: string) => Promise<void>;
   getArticleById: (id: string) => NewsArticle | undefined;
+  followedTopics: string[];
+  toggleFollowTopic: (topic: string) => Promise<void>;
+  getArticlesByFollowedTopics: () => NewsArticle[];
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -31,14 +34,29 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [savedArticles, setSavedArticles] = useState<string[]>([]);
-  const { user } = useAuth();
+  const [followedTopics, setFollowedTopics] = useState<string[]>([]);
+  const { user, isDemoMode } = useAuth();
 
   useEffect(() => {
     fetchNews();
     if (user) {
-      fetchSavedArticles();
+      if (isDemoMode) {
+        // Load demo data from localStorage
+        const savedFromStorage = localStorage.getItem('demoSavedArticles');
+        const followedFromStorage = localStorage.getItem('demoFollowedTopics');
+        
+        if (savedFromStorage) {
+          setSavedArticles(JSON.parse(savedFromStorage));
+        }
+        if (followedFromStorage) {
+          setFollowedTopics(JSON.parse(followedFromStorage));
+        }
+      } else {
+        fetchSavedArticles();
+        fetchFollowedTopics();
+      }
     }
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const fetchNews = async (category?: string) => {
     setLoading(true);
@@ -159,6 +177,25 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSavedArticles(data.map(item => item.article_id));
     } catch (error) {
       console.error('Error fetching saved articles:', error);
+    }
+  };
+
+  const fetchFollowedTopics = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('followed_topics')
+        .select('topic')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching followed topics:', error);
+        return;
+      }
+      setFollowedTopics(data.map(item => item.topic));
+    } catch (error) {
+      console.error('Error fetching followed topics:', error);
     }
   };
 
@@ -287,6 +324,19 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const isSaved = savedArticles.includes(articleId);
 
+      if (isDemoMode) {
+        // Store in localStorage for demo mode
+        let newSavedArticles;
+        if (isSaved) {
+          newSavedArticles = savedArticles.filter(id => id !== articleId);
+        } else {
+          newSavedArticles = [...savedArticles, articleId];
+        }
+        setSavedArticles(newSavedArticles);
+        localStorage.setItem('demoSavedArticles', JSON.stringify(newSavedArticles));
+        return;
+      }
+
       if (isSaved) {
         const { error } = await supabase
           .from('saved_articles')
@@ -318,8 +368,69 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const toggleFollowTopic = async (topic: string) => {
+    if (!user) return;
+
+    try {
+      const isFollowing = followedTopics.includes(topic);
+
+      if (isDemoMode) {
+        // Store in localStorage for demo mode
+        let newFollowedTopics;
+        if (isFollowing) {
+          newFollowedTopics = followedTopics.filter(t => t !== topic);
+        } else {
+          newFollowedTopics = [...followedTopics, topic];
+        }
+        setFollowedTopics(newFollowedTopics);
+        localStorage.setItem('demoFollowedTopics', JSON.stringify(newFollowedTopics));
+        return;
+      }
+
+      if (isFollowing) {
+        const { error } = await supabase
+          .from('followed_topics')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('topic', topic);
+
+        if (error) {
+          console.error('Error unfollowing topic:', error);
+          return;
+        }
+        setFollowedTopics(prev => prev.filter(t => t !== topic));
+      } else {
+        const { error } = await supabase
+          .from('followed_topics')
+          .insert([{
+            user_id: user.id,
+            topic: topic
+          }]);
+
+        if (error) {
+          console.error('Error following topic:', error);
+          return;
+        }
+        setFollowedTopics(prev => [...prev, topic]);
+      }
+    } catch (error) {
+      console.error('Error toggling followed topic:', error);
+    }
+  };
+
   const getArticleById = (id: string): NewsArticle | undefined => {
     return articles.find(article => article.id === id);
+  };
+
+  const getArticlesByFollowedTopics = (): NewsArticle[] => {
+    if (followedTopics.length === 0) return [];
+    
+    return articles.filter(article => 
+      followedTopics.some(topic => 
+        article.tags.includes(topic) || 
+        article.category.toLowerCase() === topic.toLowerCase()
+      )
+    );
   };
 
   // Mock data fallback
@@ -369,7 +480,10 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     voteOnArticle,
     savedArticles,
     toggleSaveArticle,
-    getArticleById
+    getArticleById,
+    followedTopics,
+    toggleFollowTopic,
+    getArticlesByFollowedTopics
   };
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;

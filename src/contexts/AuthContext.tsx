@@ -1,15 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, type User } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string;
+  reputation: number;
+  interests: string[];
+  bio?: string;
+  location?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (email: string, password: string, name: string) => Promise<boolean>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => void;
-  updateProfile: (updates: Partial<User>) => void;
   isAuthenticated: boolean;
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => void;
+  loginWithGoogle: () => Promise<void>;
+  // Demo mode functions
+  enableDemoMode: () => void;
+  disableDemoMode: () => void;
+  isDemoMode: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,179 +41,121 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check for demo mode in localStorage
+    const demoMode = localStorage.getItem('demoMode') === 'true';
+    if (demoMode) {
+      enableDemoMode();
+    } else {
+      checkUser();
+    }
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const checkUser = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      
+      if (supabaseUser) {
+        // Fetch user profile from database
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', supabaseUser.id)
+          .single();
 
-      if (error) {
-        // If user doesn't exist in our users table, create one
-        if (error.code === 'PGRST116') {
-          const { data: authUser } = await supabase.auth.getUser();
-          if (authUser.user) {
-            const newUser = {
-              id: authUser.user.id,
-              email: authUser.user.email || '',
-              name: authUser.user.user_metadata?.full_name || authUser.user.user_metadata?.name || 'User',
-              reputation: 50,
-              interests: [],
-              bio: '',
-              location: ''
-            };
-
-            const { data: createdUser, error: createError } = await supabase
-              .from('users')
-              .insert([newUser])
-              .select()
-              .single();
-
-            if (createError) {
-              console.error('Error creating user profile:', createError);
-            } else {
-              setUser(createdUser);
-            }
-          }
+        if (profile) {
+          setUser(profile);
         } else {
-          console.error('Error fetching user profile:', error);
+          // Create profile if it doesn't exist
+          const newProfile = {
+            id: supabaseUser.id,
+            email: supabaseUser.email!,
+            name: supabaseUser.user_metadata?.name || supabaseUser.email!.split('@')[0],
+            reputation: 50,
+            interests: [],
+            bio: '',
+            location: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          const { data: createdProfile } = await supabase
+            .from('users')
+            .insert([newProfile])
+            .select()
+            .single();
+
+          if (createdProfile) {
+            setUser(createdProfile);
+          }
         }
-      } else {
-        setUser(data);
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('Error checking user:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-      
+
       if (error) {
-        console.error('Login error:', error);
-        return false;
+        throw error;
       }
-      return true;
+
+      await checkUser();
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      throw error;
     }
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+  const signup = async (email: string, password: string, name: string) => {
     try {
-      // First, sign up the user
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            full_name: name,
-            name: name
+            name
           }
         }
       });
 
       if (error) {
-        console.error('Signup error:', error);
-        return false;
+        throw error;
       }
 
-      if (data.user) {
-        // Create user profile in our database
-        const newUser = {
-          id: data.user.id,
-          email,
-          name,
-          reputation: 50,
-          interests: [],
-          bio: '',
-          location: ''
-        };
-
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([newUser]);
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-        }
-
-        // If email confirmation is disabled, the user should be automatically signed in
-        // If email confirmation is enabled, we need to handle that case
-        if (data.session) {
-          // User is automatically signed in
-          setUser(newUser);
-          return true;
-        } else {
-          // Email confirmation required - but we'll still try to sign them in
-          // This handles the case where email confirmation is disabled in Supabase
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (!signInError) {
-            return true;
-          } else {
-            console.log('Email confirmation may be required');
-            return true; // Still return true as signup was successful
-          }
-        }
-      }
-
-      return true;
+      await checkUser();
     } catch (error) {
       console.error('Signup error:', error);
-      return false;
+      throw error;
     }
   };
 
-  const loginWithGoogle = async (): Promise<void> => {
+  const logout = () => {
+    supabase.auth.signOut();
+    setUser(null);
+    disableDemoMode();
+  };
+
+  const loginWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
-      
+
       if (error) {
-        console.error('Google login error:', error);
         throw error;
       }
     } catch (error) {
@@ -206,49 +164,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error);
-      }
-      setUser(null);
-      // Clear any cached data
-      localStorage.removeItem('supabase.auth.token');
-      sessionStorage.clear();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const enableDemoMode = () => {
+    console.log('Enabling demo mode...');
+    const demoUser: User = {
+      id: 'demo-user-id',
+      email: 'demo@ziptales.com',
+      name: 'Demo User',
+      reputation: 75,
+      interests: ['Technology', 'Politics', 'Science'],
+      bio: 'Demo user for testing features',
+      location: 'Demo City',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    setUser(demoUser);
+    setIsDemoMode(true);
+    localStorage.setItem('demoMode', 'true');
+    console.log('Demo mode enabled successfully!', demoUser);
   };
 
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Update profile error:', error);
-      } else {
-        setUser({ ...user, ...updates });
-      }
-    } catch (error) {
-      console.error('Update profile error:', error);
-    }
+  const disableDemoMode = () => {
+    setUser(null);
+    setIsDemoMode(false);
+    localStorage.removeItem('demoMode');
   };
 
   const value = {
     user,
+    isAuthenticated: !!user,
+    loading,
     login,
     signup,
-    loginWithGoogle,
     logout,
-    updateProfile,
-    isAuthenticated: !!user,
-    loading
+    loginWithGoogle,
+    enableDemoMode,
+    disableDemoMode,
+    isDemoMode
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
