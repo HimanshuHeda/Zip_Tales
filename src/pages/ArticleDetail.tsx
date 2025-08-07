@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, Bookmar
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import BlockchainVerification from '../components/BlockchainVerification';
+import RelatedArticles from '../components/RelatedArticles';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -346,6 +347,9 @@ const ArticleDetail: React.FC = () => {
             )}
           </div>
         </article>
+
+        {/* Related Articles Section */}
+        <RelatedArticles currentArticleId={article.id} limit={3} />
       </div>
     </div>
   );
