@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 //import { CredibilityWeights } from '@/config/credibilityWeights'; 
-import { calculateCredibilityScore } from '../utils/calculatecredibilityscore'; // Adjust the import path as needed
+import { calculateCredibilityScore } from '../utils/calculatecredibilityscore'; 
 
 interface Message {
   id: string;
