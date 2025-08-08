@@ -47,13 +47,13 @@ const Categories: React.FC = () => {
             <div className="space-y-3">
               <Link
                 to="/login"
-                className="block w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                className="block w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 hover:shadow-lg hover:scale-105 transition-all duration-300 transform"
               >
                 Sign In to Continue
               </Link>
               <Link
                 to="/signup"
-                className="flex items-center justify-center space-x-2 w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center space-x-2 w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-pink-300 hover:shadow-md hover:scale-105 transition-all duration-300 transform"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>Create Free Account</span>
@@ -61,7 +61,7 @@ const Categories: React.FC = () => {
             </div>
             
             <p className="text-xs text-gray-500 mt-4">
-              Already have an account? <Link to="/login" className="text-pink-600 hover:text-pink-500">Sign in here</Link>
+              Already have an account? <Link to="/login" className="text-pink-600 hover:text-pink-500 hover:underline transition-colors duration-200">Sign in here</Link>
             </p>
           </div>
         </div>
@@ -168,19 +168,19 @@ const Categories: React.FC = () => {
 
         {/* Category Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center hover:shadow-lg hover:border-green-200 hover:bg-green-50 transition-all duration-300 transform hover:scale-105 cursor-pointer">
             <div className="text-2xl font-bold text-green-600 mb-2">
               {categoryArticles.filter(a => a.credibilityScore >= 70).length}
             </div>
             <div className="text-sm text-gray-600">Trusted Articles</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center hover:shadow-lg hover:border-yellow-200 hover:bg-yellow-50 transition-all duration-300 transform hover:scale-105 cursor-pointer">
             <div className="text-2xl font-bold text-yellow-600 mb-2">
               {categoryArticles.filter(a => a.credibilityScore >= 40 && a.credibilityScore < 70).length}
             </div>
             <div className="text-sm text-gray-600">Under Review</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center hover:shadow-lg hover:border-blue-200 hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 cursor-pointer">
             <div className="text-2xl font-bold text-blue-600 mb-2">
               {Math.round(categoryArticles.reduce((sum, a) => sum + a.credibilityScore, 0) / categoryArticles.length) || 0}%
             </div>
@@ -223,7 +223,7 @@ const Categories: React.FC = () => {
               </p>
               <Link
                 to="/"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 hover:shadow-lg hover:scale-105 transition-all duration-300 transform"
               >
                 <span>Browse All News</span>
               </Link>
@@ -243,9 +243,9 @@ const Categories: React.FC = () => {
                   <Link
                     key={cat}
                     to={`/categories/${cat.toLowerCase()}`}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all duration-200 text-center"
+                    className="p-4 border border-gray-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 hover:shadow-md hover:scale-105 transition-all duration-300 transform text-center group"
                   >
-                    <div className="text-sm font-medium text-gray-900">{cat}</div>
+                    <div className="text-sm font-medium text-gray-900 group-hover:text-pink-700 transition-colors duration-200">{cat}</div>
                   </Link>
                 ))}
             </div>
