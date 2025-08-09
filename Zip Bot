@@ -1,0 +1,589 @@
+Interactive Chat Interface: Clean, modern UI with message bubbles, typing indicators, and smooth scrolling
+Suggested news topics with quick access buttons
+Example news card with summarization functionality
+Dynamic response generation based on user queries
+User Experience Elements:
+Auto-resizing text input
+animated typing indicators
+aews ticker for breaking headlines
+
+attach article and voice input options (UI only)
+Responsive Design: Fully responsive layout using Tailwind CSS
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZipBot - Smart News AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .chat-container {
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4f46e5 #e5e7eb;
+        }
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: #4f46e5;
+            border-radius: 4px;
+        }
+        .typing-indicator {
+            display: inline-block;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9CA3AF;
+            margin-right: 4px;
+            animation: typing 1s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+        .source-tag {
+            transition: all 0.2s ease;
+        }
+        .source-tag:hover {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/1bfb27f1-851b-474c-b31a-71ad25808297.png" alt="ZipBot logo" class="w-10 h-10 rounded-full">
+                        <span class="absolute -top-1 -right-1 bg-green-400 border-2 border-white rounded-full w-3 h-3"></span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">ZipBot</h1>
+                        <p class="text-xs text-indigo-200">Online</p>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="news-btn" class="p-2 rounded-full hover:bg-indigo-500 transition tooltip" data-tooltip="Latest News">
+                        <i class="fas fa-newspaper"></i>
+                    </button>
+                    <button id="sources-btn" class="p-2 rounded-full hover:bg-indigo-500 transition tooltip" data-tooltip="News Sources">
+                        <i class="fas fa-globe"></i>
+                    </button>
+                    <button id="settings-btn" class="p-2 rounded-full hover:bg-indigo-500 transition tooltip" data-tooltip="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- News Ticker -->
+        <div class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 overflow-hidden">
+            <div class="flex items-center">
+                <span class="text-xs font-semibold text-indigo-700 mr-3 whitespace-nowrap">BREAKING:</span>
+                <div class="inline-block whitespace-nowrap">
+                    <div class="inline-block animate-marquee whitespace-nowrap pr-8">
+                        <span class="text-xs text-gray-700 mr-8">Stock markets reach record highs as tech sector surges</span>
+                        <span class="text-xs text-gray-700 mr-8">Climate summit agrees on historic emissions reduction targets</span>
+                        <span class="text-xs text-gray-700 mr-8">New COVID variant shows vaccine resistance, WHO warns</span>
+                        <span class="text-xs text-gray-700 mr-8">Global supply chain disruptions expected to continue through Q2</span>
+                        <span class="text-xs text-gray-700 mr-8">Major tech company announces breakthrough in quantum computing</span>
+                        <span class="text-xs text-gray-700">Central banks signal potential pause in rate hikes amid economic concerns</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+            <!-- Suggested News Topics -->
+            <div id="suggested-topics" class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-500">Suggested News Topics</h3>
+                    <button id="refresh-topics" class="text-xs text-indigo-600 hover:text-indigo-800 transition">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Tech Trends</button>
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Global Politics</button>
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Financial Markets</button>
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Climate Change</button>
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Health & Science</button>
+                    <button class="topic-btn px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full hover:bg-indigo-200 transition">Entertainment</button>
+                </div>
+            </div>
+
+            <!-- News Sources Panel (Hidden by default) -->
+            <div id="sources-panel" class="hidden p-4 border-b border-gray-200 bg-white">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-500">Select News Sources</h3>
+                    <button id="apply-sources" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition">
+                        Apply Selection
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        The New York Times
+                    </button>
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        Reuters
+                    </button>
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        BBC News
+                    </button>
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        Associated Press
+                    </button>
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        The Guardian
+                    </button>
+                    <button class="source-tag px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200 transition">
+                        <i class="fas fa-check-circle text-green-500 mr-1 hidden"></i>
+                        Bloomberg
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-container" class="chat-container p-4 space-y-4 flex-1">
+                <!-- System Message -->
+                <div class="flex items-start space-x-2">
+                    <div class="relative">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/cf1360ab-5572-4610-aff4-ae48178a06f6.png" alt="ZipBot avatar" class="w-8 h-8 rounded-full">
+                        <span class="absolute -bottom-0.5 -right-0.5 bg-green-400 border-2 border-white rounded-full w-2.5 h-2.5"></span>
+                    </div>
+                    <div class="max-w-3xl bg-indigo-50 rounded-lg px-4 py-3">
+                        <p class="text-sm text-gray-800">Hi there! I'm ZipBot, your AI powered news assistant. I can analyze news articles, summarize headlines, and answer your questions with reliable sources. How can I help you today?</p>
+                        <div class="mt-2 text-xs text-gray-500 pt-2 border-t border-gray-200">
+                            <strong class="text-gray-700">Tip:</strong> Try asking about specific topics like "tech news" or "latest on climate change"
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example News Card -->
+                <div class="news-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition duration-300">
+                    <div class="p-3 pb-0">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-semibold text-gray-800">Top Business Headlines</h4>
+                            <span class="text-xs text-gray-500">Updated 15 min ago</span>
+                        </div>
+                    </div>
+                    <div class="px-3 pb-3">
+                        <ul class="text-xs text-gray-600 space-y-2">
+                            <li class="flex items-start">
+                                <span class="text-indigo-500 mr-2">•</span>
+                                <span><strong>Tech Giant Q2 Earnings</strong> exceed expectations as cloud revenue soars 45%</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-indigo-500 mr-2">•</span>
+                                <span><strong>EV Market Growth</strong> slows as supply chain issues persist, manufacturers warn</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-indigo-500 mr-2">•</span>
+                                <span><strong>Cryptocurrency Volatility</strong> continues as Bitcoin drops below key support level</span>
+                            </li>
+                        </ul>
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-xs text-gray-500">
+                                Sources: NYT, Reuters, Bloomberg
+                            </div>
+                            <button class="analyze-btn text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
+                                <i class="fas fa-chart-line mr-1"></i> Analyze
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Conversation -->
+                <div id="chat-messages">
+                    <!-- Messages will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 p-4 bg-white">
+                <div id="input-container" class="relative">
+                    <textarea id="user-input" placeholder="Ask ZipBot about current news or any topic..." class="w-full border border-gray-300 rounded-lg py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="1"></textarea>
+                    <button id="send-btn" class="absolute right-2 bottom-2 bg-indigo-600 text-white p-1 rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    <div class="flex justify-between mt-2">
+                        <div class="flex space-x-3">
+                            <button id="attach-btn" class="text-xs text-gray-500 hover:text-indigo-600 transition">
+                                <i class="fas fa-link mr-1"></i> Attach Article
+                            </button>
+                            <button id="mic-btn" class="text-xs text-gray-500 hover:text-indigo-600 transition">
+                                <i class="fas fa-microphone mr-1"></i> Voice Input
+                            </button>
+                        </div>
+                        <div id="char-count" class="text-xs text-gray-400">0/500</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            const charCount = document.getElementById('char-count');
+            const sourcesPanel = document.getElementById('sources-panel');
+            const suggestedTopics = document.getElementById('suggested-topics');
+            const refreshTopicsBtn = document.getElementById('refresh-topics');
+            const sourcesBtn = document.getElementById('sources-btn');
+            const applySourcesBtn = document.getElementById('apply-sources');
+            const newsBtn = document.getElementById('news-btn');
+            const analyzeBtns = document.querySelectorAll('.analyze-btn');
+            const sourceTags = document.querySelectorAll('.source-tag');
+            
+            // Auto-resize textarea and character count
+            userInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                
+                // Update character count
+                const currentLength = this.value.length;
+                charCount.textContent = `${currentLength}/500`;
+                
+                if (currentLength > 500) {
+                    charCount.classList.add('text-red-500');
+                    charCount.classList.remove('text-gray-400');
+                } else {
+                    charCount.classList.remove('text-red-500');
+                    charCount.classList.add('text-gray-400');
+                }
+            });
+
+            // Send message on Enter (shift+Enter for new line)
+            userInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.length <= 500) {
+                        sendMessage();
+                    }
+                }
+            });
+
+            sendBtn.addEventListener('click', function() {
+                if (userInput.value.length <= 500) {
+                    sendMessage();
+                }
+            });
+
+            // Toggle news sources panel
+            sourcesBtn.addEventListener('click', function() {
+                sourcesPanel.classList.toggle('hidden');
+                suggestedTopics.classList.toggle('hidden');
+            });
+
+            // Apply news sources selection
+            applySourcesBtn.addEventListener('click', function() {
+                sourcesPanel.classList.add('hidden');
+                suggestedTopics.classList.remove('hidden');
+                addMessage('bot', "I've updated my news sources based on your preferences. I'll now prioritize these sources when providing news analysis and updates.");
+            });
+
+            // Refresh suggested topics
+            refreshTopicsBtn.addEventListener('click', function() {
+                // Add loading animation
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Refreshing';
+                
+                // Simulate loading
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt mr-1"></i>Refresh';
+                    addMessage('bot', "I've refreshed the suggested topics based on trending news. Let me know if you'd like to explore any of these.");
+                }, 1000);
+            });
+
+            // Toggle source selection
+            sourceTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('hidden');
+                    this.classList.toggle('bg-indigo-100');
+                    this.classList.toggle('text-indigo-800');
+                });
+            });
+
+            // Show latest news
+            newsBtn.addEventListener('click', function() {
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    addMessage('bot', "Here are today's top news highlights:\n\n1. <strong>Tech:</strong> Apple unveils new AI-powered features in latest OS update\n2. <strong>Politics:</strong> G7 leaders reach agreement on new economic security framework\n3. <strong>Health:</strong> FDA approves groundbreaking Alzheimer's treatment\n4. <strong>Finance:</strong> Major banks pass stress tests with improved capital ratios\n\nWould you like more details on any of these stories?");
+                }, 1500);
+            });
+
+            // Analyze news buttons
+            analyzeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.news-card');
+                    const headlines = Array.from(card.querySelectorAll('li')).map(li => li.textContent.trim());
+                    
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        
+                        let analysis = "Here's my analysis of these business headlines:\n\n";
+                        headlines.forEach((headline, index) => {
+                            analysis += `${index + 1}. <strong>${headline.split(' ')[0]}</strong>: `;
+                            
+                            if (headline.includes('Tech Giant')) {
+                                analysis += "This earnings beat suggests strong enterprise demand despite macroeconomic concerns. Cloud growth at 45% indicates successful pivot to SaaS offerings.\n\n";
+                            } else if (headline.includes('EV Market')) {
+                                analysis += "The EV slowdown appears temporary, with backlogs still high. Supply chain issues primarily affect battery components from Asia. Analysts expect resolution by Q4.\n\n";
+                            } else if (headline.includes('Cryptocurrency')) {
+                                analysis += "Crypto volatility remains elevated as institutional investors await clearer regulations. Trading volumes are down 30% from last quarter, indicating reduced retail participation.\n\n";
+                            }
+                        });
+                        
+                        analysis += "Would you like me to find more recent updates on any of these topics?";
+                        
+                        addMessage('bot', analysis);
+                    }, 2000);
+                });
+            });
+
+            // Topic buttons
+            document.querySelectorAll('.topic-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const topic = this.textContent;
+                    userInput.value = `What's the latest news about ${topic}?`;
+                    userInput.focus();
+                    userInput.style.height = 'auto';
+                    userInput.style.height = (userInput.scrollHeight) + 'px';
+                });
+            });
+
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+
+                // Add user message to chat
+                addMessage('user', message);
+                userInput.value = '';
+                userInput.style.height = 'auto';
+                charCount.textContent = '0/500';
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Simulate bot response after delay
+                setTimeout(() => {
+                    // Remove typing indicator
+                    removeTypingIndicator();
+                    
+                    // Generate bot response
+                    const response = generateBotResponse(message);
+                    addMessage('bot', response);
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                }, 1500);
+            }
+
+            function addMessage(sender, message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex items-start space-x-2 mt-3';
+                
+                if (sender === 'user') {
+                    messageDiv.innerHTML = `
+                        <div class="ml-auto max-w-3xl">
+                            <div class="bg-indigo-600 text-white rounded-lg px-4 py-3">
+                                <p class="text-sm">${message}</p>
+                            </div>
+                            <div class="text-right mt-1">
+                                <span class="text-xs text-gray-500">${getCurrentTime()}</span>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5d566d16-9d7f-4c4f-9149-3941501bc714.png" alt="User avatar" class="w-8 h-8 rounded-full">
+                            <span class="absolute -bottom-0.5 -right-0.5 bg-green-400 border-2 border-white rounded-full w-2.5 h-2.5"></span>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="relative">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/cf1360ab-5572-4610-aff4-ae48178a06f6.png" alt="ZipBot avatar" class="w-8 h-8 rounded-full">
+                            <span class="absolute -bottom-0.5 -right-0.5 bg-green-400 border-2 border-white rounded-full w-2.5 h-2.5"></span>
+                        </div>
+                        <div class="max-w-3xl bg-indigo-50 rounded-lg px-4 py-3">
+                            <p class="text-sm text-gray-800">${message}</p>
+                            <div class="text-left mt-1">
+                                <span class="text-xs text-gray-500">${getCurrentTime()}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add citations if this is an analysis
+                    if (message.includes('analysis') || message.includes('According')) {
+                        const sources = [
+                            "Source: The New York Times - https://nytimes.com",
+                            "Source: Reuters - https://reuters.com",
+                            "Source: Bloomberg - https://bloomberg.com"
+                        ];
+                        
+                        const sourcesDiv = document.createElement('div');
+                        sourcesDiv.className = 'mt-2 text-xs text-gray-500 pt-2 border-t border-gray-200';
+                        sourcesDiv.innerHTML = `<strong class="text-gray-700">References:</strong><br>${sources.join('<br>')}`;
+                        messageDiv.querySelector('div').appendChild(sourcesDiv);
+                    }
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'flex items-start space-x-2 mt-3 typing-indicator-wrapper';
+                typingDiv.innerHTML = `
+                    <div class="relative">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/cf1360ab-5572-4610-aff4-ae48178a06f6.png" alt="ZipBot avatar" class="w-8 h-8 rounded-full">
+                        <span class="absolute -bottom-0.5 -right-0.5 bg-green-400 border-2 border-white rounded-full w-2.5 h-2.5"></span>
+                    </div>
+                    <div class="max-w-3xl bg-indigo-50 rounded-lg px-4 py-3">
+                        <div class="typing-indicator space-x-1">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(typingDiv);
+                scrollToBottom();
+            }
+
+            function removeTypingIndicator() {
+                const typingIndicator = document.querySelector('.typing-indicator-wrapper');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            function generateBotResponse(message) {
+                // Simulate different responses based on message content
+                message = message.toLowerCase();
+                
+                if (message.includes('tech') || message.includes('ai') || message.includes('apple') || message.includes('google')) {
+                    return `The tech sector continues to show strong growth, particularly in AI applications. According to recent reports:<br><br>
+                    - Investments in AI startups have increased by 35% year-over-year<br>
+                    - Major tech companies are integrating generative AI into their products<br>
+                    - Cloud computing revenue is growing at 25% annually<br><br>
+                    Would you like me to find specific news about any particular company or technology?`;
+                } else if (message.includes('market') || message.includes('stock') || message.includes('finance') || message.includes('economy')) {
+                    return `Financial markets have been active recently. Here's what I'm seeing:<br><br>
+                    - <strong>S&P 500</strong>: Up 12% YTD despite recent volatility<br>
+                    - <strong>Bond yields</strong>: 10-year Treasury at 3.8% as Fed signals pause<br>
+                    - <strong>Commodities</strong>: Oil prices stabilizing around $75/barrel<br>
+                    - <strong>Cryptocurrencies</strong>: Bitcoin holding support at $28,000<br><br>
+                    I can provide more detailed analysis on any of these if you're interested.`;
+                } else if (message.includes('climate') || message.includes('environment') || message.includes('energy')) {
+                    return `Climate change developments this week:<br><br>
+                    <strong>1. Policy</strong>: New EU regulations set stricter emissions targets for 2030<br>
+                    <strong>2. Technology</strong>: Battery storage costs fell 15% year-over-year<br>
+                    <strong>3. Science</strong>: Study shows ocean currents slowing more than expected<br>
+                    <strong>4. Business</strong>: Renewable energy investments hit record $1.2 trillion in 2023<br><br>
+                    Let me know if you'd like deeper analysis on any aspect.`;
+                } else if (message.includes('covid') || message.includes('pandemic') || message.includes('health') || message.includes('medical')) {
+                    return `Current health updates:<br><br>
+                    - <strong>COVID-19</strong>: New variants account for 25% of cases but vaccines remain effective against severe illness<br>
+                    - <strong>Medical Advances</strong>: FDA approves new Alzheimer's drug showing 27% slowing of cognitive decline<br>
+                    - <strong>Healthcare</strong>: Telemedicine usage stabilizes at 30% above pre-pandemic levels<br><br>
+                    I can check for the latest research or local statistics if needed.`;
+                } else if (message.includes('politics') || message.includes('election') || message.includes('government')) {
+                    return `Recent political developments:<br><br>
+                    - <strong>US</strong>: 2024 election polls show tight race as candidates announce<br>
+                    - <strong>Europe</strong>: EU reaches compromise on migration policy reform<br>
+                    - <strong>Asia</strong>: Regional summit addresses trade and security tensions<br>
+                    - <strong>Global</strong>: UN reports progress on Sustainable Development Goals<br><br>
+                    Would you like details on any specific region or issue?`;
+                } else {
+                    // Default response for other queries
+                    const responses = [
+                        `I've analyzed recent reports on that topic. According to credible sources, there are several important developments worth noting... Would you like me to summarize the key points?`,
+                        `That's an interesting question. My analysis of current information suggests... I can provide more details if you'd like.`,
+                        `I can certainly help with that. Based on the latest available data... Would you like me to find more recent updates?`,
+                        `Great question! Let me share what I've learned about this from reliable sources... Would you like me to go deeper on any aspect?`
+                    ];
+                    return responses[Math.floor(Math.random() * responses.length)];
+                }
+            }
+
+            function getCurrentTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                return `${hours}:${minutes} ${ampm}`;
+            }
+
+            function scrollToBottom() {
+                const container = document.querySelector('.chat-container');
+                container.scrollTo(0, container.scrollHeight);
+            }
+
+            // Add tooltips
+            document.querySelectorAll('.tooltip').forEach(el => {
+                el.addEventListener('mouseenter', function() {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'absolute z-10 bg-gray-800 text-white text-xs px-2 py-1 rounded mt-1';
+                    tooltip.textContent = this.getAttribute('data-tooltip');
+                    tooltip.style.bottom = '100%';
+                    tooltip.style.left = '50%';
+                    tooltip.style.transform = 'translateX(-50%)';
+                    
+                    this.appendChild(tooltip);
+                    
+                    this.addEventListener('mouseleave', function() {
+                        tooltip.remove();
+                    }, { once: true });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
