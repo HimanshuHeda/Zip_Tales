@@ -14,6 +14,10 @@ interface NewsContextType {
   savedArticles: string[];
   toggleSaveArticle: (articleId: string) => Promise<void>;
   getArticleById: (id: string) => NewsArticle | undefined;
+  getRelatedArticles: (articleId: string, limit?: number) => NewsArticle[];
+  followedTopics: string[];
+  toggleFollowTopic: (topic: string) => Promise<void>;
+  getArticlesByFollowedTopics: () => NewsArticle[];
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined);
@@ -31,14 +35,29 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [savedArticles, setSavedArticles] = useState<string[]>([]);
-  const { user } = useAuth();
+  const [followedTopics, setFollowedTopics] = useState<string[]>([]);
+  const { user, isDemoMode } = useAuth();
 
   useEffect(() => {
     fetchNews();
     if (user) {
-      fetchSavedArticles();
+      if (isDemoMode) {
+        // Load demo data from localStorage
+        const savedFromStorage = localStorage.getItem('demoSavedArticles');
+        const followedFromStorage = localStorage.getItem('demoFollowedTopics');
+        
+        if (savedFromStorage) {
+          setSavedArticles(JSON.parse(savedFromStorage));
+        }
+        if (followedFromStorage) {
+          setFollowedTopics(JSON.parse(followedFromStorage));
+        }
+      } else {
+        fetchSavedArticles();
+        fetchFollowedTopics();
+      }
     }
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const fetchNews = async (category?: string) => {
     setLoading(true);
@@ -162,10 +181,35 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const fetchFollowedTopics = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('followed_topics')
+        .select('topic')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching followed topics:', error);
+        return;
+      }
+      setFollowedTopics(data.map(item => item.topic));
+    } catch (error) {
+      console.error('Error fetching followed topics:', error);
+    }
+  };
+
   const analyzeNews = async (content: string): Promise<number> => {
     try {
       // Use Google AI API for content analysis
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GOOGLE_API_KEY}`, {
+      const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+      if (!apiKey) {
+        console.warn('Google API key not found, using fallback analysis');
+        return simulateAnalysis(content);
+      }
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -281,6 +325,19 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const isSaved = savedArticles.includes(articleId);
 
+      if (isDemoMode) {
+        // Store in localStorage for demo mode
+        let newSavedArticles;
+        if (isSaved) {
+          newSavedArticles = savedArticles.filter(id => id !== articleId);
+        } else {
+          newSavedArticles = [...savedArticles, articleId];
+        }
+        setSavedArticles(newSavedArticles);
+        localStorage.setItem('demoSavedArticles', JSON.stringify(newSavedArticles));
+        return;
+      }
+
       if (isSaved) {
         const { error } = await supabase
           .from('saved_articles')
@@ -312,8 +369,99 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const toggleFollowTopic = async (topic: string) => {
+    if (!user) return;
+
+    try {
+      const isFollowing = followedTopics.includes(topic);
+
+      if (isDemoMode) {
+        // Store in localStorage for demo mode
+        let newFollowedTopics;
+        if (isFollowing) {
+          newFollowedTopics = followedTopics.filter(t => t !== topic);
+        } else {
+          newFollowedTopics = [...followedTopics, topic];
+        }
+        setFollowedTopics(newFollowedTopics);
+        localStorage.setItem('demoFollowedTopics', JSON.stringify(newFollowedTopics));
+        return;
+      }
+
+      if (isFollowing) {
+        const { error } = await supabase
+          .from('followed_topics')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('topic', topic);
+
+        if (error) {
+          console.error('Error unfollowing topic:', error);
+          return;
+        }
+        setFollowedTopics(prev => prev.filter(t => t !== topic));
+      } else {
+        const { error } = await supabase
+          .from('followed_topics')
+          .insert([{
+            user_id: user.id,
+            topic: topic
+          }]);
+
+        if (error) {
+          console.error('Error following topic:', error);
+          return;
+        }
+        setFollowedTopics(prev => [...prev, topic]);
+      }
+    } catch (error) {
+      console.error('Error toggling followed topic:', error);
+    }
+  };
+
   const getArticleById = (id: string): NewsArticle | undefined => {
     return articles.find(article => article.id === id);
+  };
+
+  const getRelatedArticles = (articleId: string, limit: number = 3): NewsArticle[] => {
+    const currentArticle = articles.find(article => article.id === articleId);
+    if (!currentArticle) return [];
+
+    // Find articles with the same category or similar tags
+    const relatedArticles = articles
+      .filter(article => 
+        article.id !== articleId && // Exclude current article
+        (
+          article.category === currentArticle.category || // Same category
+          (currentArticle.tags && article.tags && 
+           currentArticle.tags.some(tag => article.tags.includes(tag))) // Similar tags
+        )
+      )
+      .sort((a, b) => {
+        // Prioritize articles with same category
+        const aSameCategory = a.category === currentArticle.category;
+        const bSameCategory = b.category === currentArticle.category;
+        
+        if (aSameCategory && !bSameCategory) return -1;
+        if (!aSameCategory && bSameCategory) return 1;
+        
+        // Then sort by credibility score (higher first)
+        return b.credibilityScore - a.credibilityScore;
+      })
+      .slice(0, limit);
+
+    return relatedArticles;
+  };
+
+  const getArticlesByFollowedTopics = (): NewsArticle[] => {
+    if (followedTopics.length === 0) return [];
+    
+    return articles.filter(article => 
+      followedTopics.some(topic => 
+        article.tags.includes(topic) || 
+        article.category.toLowerCase() === topic.toLowerCase()
+      )
+    );
   };
 
   // Mock data fallback
@@ -349,6 +497,38 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tags: ['Climate', 'Politics', 'Environment'],
       location: 'Geneva, Switzerland',
       verified: true
+    },
+    {
+      id: '3',
+      title: 'Quantum Computing Revolution in Cybersecurity',
+      summary: 'New quantum computing developments promise to revolutionize cybersecurity and encryption methods worldwide.',
+      content: 'A team of researchers at MIT has made a breakthrough in quantum computing that could fundamentally change how we approach cybersecurity. The new quantum algorithm, developed over five years of intensive research, can solve complex cryptographic problems in minutes that would take traditional computers centuries.\n\n"This is a game-changer for cybersecurity," said Dr. Emily Rodriguez, lead researcher on the project. "We\'re not just improving existing methods; we\'re creating entirely new paradigms for secure communication."\n\nThe quantum computing system uses entangled particles to perform calculations at speeds unimaginable with classical computers. This breakthrough has implications for everything from banking security to government communications.\n\nHowever, the development also raises concerns about current encryption methods becoming obsolete. "We need to develop quantum-resistant encryption now," warned cybersecurity expert Dr. James Wilson. "The race is on to stay ahead of potential threats."\n\nThe research has attracted significant interest from major tech companies and government agencies worldwide. Several partnerships have been announced to develop practical applications of this technology.\n\nThe team plans to publish their findings in the upcoming issue of Nature and has already filed several patents for their quantum algorithms.',
+      author: 'Dr. Emily Rodriguez',
+      source: 'Tech Innovations Weekly',
+      publishedAt: '2025-01-14T14:20:00Z',
+      imageUrl: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg',
+      category: 'Technology',
+      credibilityScore: 82,
+      votes: { upvotes: 156, downvotes: 5 },
+      tags: ['AI', 'Technology', 'Cybersecurity'],
+      location: 'Cambridge, MA',
+      verified: true
+    },
+    {
+      id: '4',
+      title: 'Global Renewable Energy Investment Surges',
+      summary: 'Record-breaking investment in renewable energy projects signals major shift toward sustainable power sources.',
+      content: 'Global investment in renewable energy has reached unprecedented levels, with over $1.2 trillion committed to clean energy projects in the past year alone. This represents a 45% increase from the previous year and signals a fundamental shift in how the world approaches energy production.\n\n"The numbers are clear - renewable energy is no longer just an environmental choice, it\'s the smart economic choice," said Maria Santos, Director of the International Energy Agency. "We\'re seeing record investment because renewables are now the most cost-effective energy source in most markets."\n\nSolar and wind energy projects account for the majority of new investments, with significant growth also seen in battery storage technology and hydrogen fuel development. Emerging markets are leading the charge, with countries like India and Brazil making massive commitments to renewable infrastructure.\n\nThis surge in investment has created millions of new jobs worldwide and is driving innovation in energy storage and grid management technology. "We\'re not just building solar panels and wind turbines," said energy analyst Dr. Robert Chen. "We\'re building the foundation for a completely new energy economy."\n\nThe transition is also having a measurable impact on carbon emissions, with global CO2 levels showing their first significant decline in decades. However, experts warn that much more needs to be done to meet international climate targets.\n\nMajor corporations are also joining the movement, with tech giants and traditional energy companies alike announcing ambitious renewable energy commitments.',
+      author: 'Sarah Williams',
+      source: 'Energy Today',
+      publishedAt: '2025-01-13T09:45:00Z',
+      imageUrl: 'https://images.pexels.com/photos/38136/pexels-photo-38136.jpeg',
+      category: 'Environment',
+      credibilityScore: 79,
+      votes: { upvotes: 203, downvotes: 15 },
+      tags: ['Climate', 'Environment', 'Technology'],
+      location: 'Paris, France',
+      verified: true
     }
   ];
 
@@ -363,7 +543,11 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     voteOnArticle,
     savedArticles,
     toggleSaveArticle,
-    getArticleById
+    getArticleById,
+    getRelatedArticles,
+    followedTopics,
+    toggleFollowTopic,
+    getArticlesByFollowedTopics
   };
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;

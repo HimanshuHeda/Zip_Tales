@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link2, FileText, Tag, MapPin, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNews } from '../contexts/NewsContext';
 
 const SubmitNews: React.FC = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   const { user, isAuthenticated } = useAuth();
   const { analyzeNews } = useNews();
   const [formData, setFormData] = useState({

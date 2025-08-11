@@ -14,8 +14,7 @@ const Login: React.FC = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const [showSignupPrompt, setShowSignupPrompt] = useState(false); // New state variable
-  const { login, loginWithGoogle, enableDemoMode } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
