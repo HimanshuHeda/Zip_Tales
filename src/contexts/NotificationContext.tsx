@@ -31,24 +31,26 @@ export const useNotifications = () => {
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { followedTopics, articles } = useNews();
+  
+  // ✅ Safe destructuring with defaults
+  const { followedTopics = [], news: articles = [] } = useNews();
   const { isAuthenticated } = useAuth();
 
   // Check for new articles from followed topics
   useEffect(() => {
-    if (!isAuthenticated || followedTopics.length === 0) return;
+    if (!isAuthenticated || (followedTopics?.length ?? 0) === 0) return;
 
     const checkForNewArticles = () => {
-      const recentArticles = articles.filter(article => {
+      const recentArticles = (articles ?? []).filter(article => {
         const articleDate = new Date(article.publishedAt);
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         return articleDate > fiveMinutesAgo;
       });
 
       recentArticles.forEach(article => {
-        const isFromFollowedTopic = followedTopics.some(topic => 
-          article.tags.includes(topic) || 
-          article.category.toLowerCase() === topic.toLowerCase()
+        const isFromFollowedTopic = (followedTopics ?? []).some(topic => 
+          article.tags?.includes(topic) || 
+          article.category?.toLowerCase() === topic.toLowerCase()
         );
 
         if (isFromFollowedTopic) {
@@ -61,14 +63,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             addNotification({
               type: 'new_article',
               title: `New article in ${article.category}`,
-              message: `${article.title} - ${article.summary.substring(0, 100)}...`
+              message: `${article.title} - ${article.summary?.substring(0, 100) ?? ''}...`
             });
           }
         }
       });
     };
 
-    // Check every 30 seconds for new articles
     const interval = setInterval(checkForNewArticles, 30000);
     return () => clearInterval(interval);
   }, [articles, followedTopics, isAuthenticated, notifications]);
@@ -81,7 +82,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       read: false
     };
 
-    setNotifications(prev => [newNotification, ...prev.slice(0, 9)]); // Keep only 10 most recent
+    setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
   };
 
   const markAsRead = (id: string) => {
@@ -98,7 +99,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setNotifications([]);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = (notifications ?? []).filter(n => !n.read).length;
 
   const value = {
     notifications,
@@ -109,4 +110,4 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
-}; 
+};
