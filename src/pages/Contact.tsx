@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Users, Shield } from 'lucide-react';
 
 const Contact: React.FC = () => {
@@ -11,6 +11,20 @@ const Contact: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Prefill from query string (type, subject, message)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const incoming: any = {};
+      if (params.has('type')) incoming.type = params.get('type') || undefined;
+      if (params.has('subject')) incoming.subject = params.get('subject') || undefined;
+      if (params.has('message')) incoming.message = params.get('message') || undefined;
+      const next = { ...formData, ...incoming };
+      setFormData(next);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
