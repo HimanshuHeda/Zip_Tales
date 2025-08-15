@@ -135,3 +135,58 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **ZipTales** - Where news meets trust, one article at a time. 🌟
+
+## Credibility Badges & Source Reliability (New)
+
+Enhance reader trust with a source credibility badge on each article card. The badge is color-coded by reliability and includes an interactive modal with a legend and quick reporting link.
+
+### What’s Included
+
+- **Source credibility badge on article cards**: Indicates the reliability of the source.
+- **Color thresholds**: Green (≥80), Yellow (50–79), Red (<50), Gray (Not Rated).
+- **Tooltip**: “This score is based on the reliability rating of the source.”
+- **Interactive modal**: Legend, source domain, and a “Report this source” link.
+- **Prefilled Contact**: Reporting link prepopulates the contact form via query params.
+
+### Files Added/Edited
+
+- Added: `src/components/SourceCredibilityBadge.tsx`
+- Added: `src/data/sourceReliability.json`
+- Edited: `src/components/NewsCard.tsx` (integrated the badge)
+- Edited: `src/pages/Contact.tsx` (prefill type/subject/message from URL)
+- Edited: `src/lib/credibility.ts` (implemented `lookupSourceReliability` with URL/name handling)
+
+### How It Works
+
+- `NewsCard` renders `SourceCredibilityBadge` using `article.source`.
+- The badge extracts the domain (supports full URLs and raw names) and looks up a score in `src/data/sourceReliability.json`.
+- Click the badge to open a small modal with a legend and a reporting link.
+- The reporting link routes to `/contact` with query parameters that prefill the form.
+
+### Configure Source Scores
+
+- Update `src/data/sourceReliability.json` to add or modify source scores.
+- Keys should be domains (preferred), e.g. `"bbc.com"`. Bare names can also be used if needed.
+
+Example:
+
+```json
+{
+  "bbc.com": 90,
+  "cnn.com": 85,
+  "unknownsource.xyz": 40
+}
+```
+
+### Contact Page Prefill
+
+`/contact?type=report&subject=Report%20source%3A%20bbc.com&message=I%20would%20like%20to%20report...`
+
+- Recognized query params: `type`, `subject`, `message`.
+- `type=report` selects the “Report Misinformation” category automatically.
+
+### Future Enhancements
+
+- Fetch reliability from external services (e.g., NewsGuard, MBFC) instead of static JSON.
+- Allow users to propose rating changes and view rationale.
+- Add a detailed breakdown modal per source.
