@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Chrome, AlertCircle, UserPlus, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,10 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+
+
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -23,15 +27,25 @@ const Login: React.FC = () => {
     setLoading(true);
     setError('');
 
-    try {
-      await login(email, password);
-      navigate('/');
-    } catch (err) {
-      setError('Invalid email or password. Please check your credentials and try again.');
-    } finally {
+   try {
+  await login(email, password);
+  setToastMessage("✅ Login successful! Redirecting...");
+  navigate('/');
+} catch (err) {
+  setError("Invalid email or password.");
+  setToastMessage("❌ Invalid email or password.");
+}
+finally {
       setLoading(false);
     }
   };
+
+useEffect(() => {
+  if (toastMessage) {
+    const timer = setTimeout(() => setToastMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }
+}, [toastMessage]);
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -48,6 +62,7 @@ const Login: React.FC = () => {
   };
 
   const handleDemoMode = () => {
+    setToastMessage("Demo login activated 🚀");
     enableDemoMode();
     navigate('/');
   };
@@ -72,6 +87,9 @@ const Login: React.FC = () => {
 
   if (showForgotPassword) {
     return (
+
+ 
+
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
@@ -177,6 +195,12 @@ const Login: React.FC = () => {
   }
 
   return (
+    <>
+        { toastMessage && (
+  <div className="fixed top-5 right-5 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+    {toastMessage}
+  </div>
+)}
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -338,7 +362,9 @@ const Login: React.FC = () => {
         </div>
       </div>
     </div>
+     </>
   );
+ 
 };
 
 export default Login;
