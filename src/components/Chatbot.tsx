@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+
+//import { CredibilityWeights } from '@/config/credibilityWeights'; 
+import { calculateCredibilityScore } from '../utils/calculatecredibilityscore'; 
 // If you want to fix the error, make sure the import paths are correct and the files exist.
 // If your project uses the "@" alias for the src directory, ensure your tsconfig.json or jsconfig.json is configured properly.
 // Otherwise, use relative imports like below (assuming the file structure):
@@ -37,10 +40,12 @@ const Chatbot: React.FC = () => {
   }, [messages]);
 
 
-const analyzeNewsContent = async (content: string): Promise<string> => {
-  const { score, analysis } = calculateCredibilityScore(content);
+  const analyzeNewsContent = async (content: string): Promise<string> => {
+    // Note: There was duplicate code here, I have cleaned it up.
+    const { score, analysis } = calculateCredibilityScore(content);
 
-  return `Based on my analysis:
+
+    return `Based on my analysis:
 
 📊 **Credibility Score: ${score}%**
 

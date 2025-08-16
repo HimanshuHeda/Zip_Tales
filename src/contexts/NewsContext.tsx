@@ -1,10 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, NewsArticle } from '../lib/supabase';
 
+// Helper for mock data if needed
+const getMockArticles = (): NewsArticle[] => [];
+
+export interface Filters {
+  dateRange: string;
+  category: string;
+}
+
 interface NewsContextType {
   articles: NewsArticle[];
   loading: boolean;
-  fetchNews: () => Promise<void>;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  fetchNews: (filters?: Filters) => Promise<void>;
+  searchNews: (query: string) => Promise<NewsArticle[]>;
+  analyzeNews: (content: string) => Promise<number>;
   voteOnArticle: (articleId: string, vote: 'up' | 'down') => Promise<void>;
   savedArticles: string[];
   toggleSaveArticle: (articleId: string) => void;
@@ -21,20 +33,78 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(false);
   const [savedArticles, setSavedArticles] = useState<string[]>([]);
   const [followedTopics, setFollowedTopics] = useState<string[]>([]);
+  // Added state for searchTerm to match the new interface
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  const fetchNews = async () => {
+  const fetchNews = async (filters: Filters = { dateRange: 'all', category: 'all' }) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // --- FIXED DYNAMIC FILTERING LOGIC ---
+      // Start building the query
+      let query = supabase
         .from('news_articles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setArticles((data as NewsArticle[]) || []);
-    } catch (err) {
-      console.error('Database error:', err);
-      setArticles([]);
+      // 1. Category Filter
+      if (filters.category && filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+
+      // 2. Date Range Filter
+      if (filters.dateRange && filters.dateRange !== 'all') {
+        const now = new Date();
+        let fromDate: Date | undefined;
+
+        if (filters.dateRange === 'today') {
+          fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        } else if (filters.dateRange === 'last7days') {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          fromDate = sevenDaysAgo;
+        }
+
+        if (fromDate) {
+          // Assuming your column is 'published_at' based on the transform logic
+          query = query.gte('published_at', fromDate.toISOString());
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Database error:', error);
+        // Fallback to mock data if database query fails
+        setArticles(getMockArticles());
+        return;
+      }
+
+      // Transform data to match our interface
+      const transformedArticles: NewsArticle[] = data.map(article => ({
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        content: article.content,
+        author: article.author,
+        source: article.source,
+        publishedAt: article.published_at,
+        imageUrl: article.image_url,
+        category: article.category,
+        credibilityScore: article.credibility_score,
+        votes: {
+          upvotes: article.upvotes,
+          downvotes: article.downvotes
+        },
+        tags: article.tags || [],
+        location: article.location,
+        verified: article.verified
+      }));
+
+      setArticles(transformedArticles);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      // Fallback to mock data if there's any error
+      setArticles(getMockArticles());
     } finally {
       setLoading(false);
     }
@@ -43,6 +113,20 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     fetchNews();
   }, []);
+
+  // --- ADDED MISSING FUNCTIONS TO MATCH INTERFACE ---
+  const searchNews = async (query: string): Promise<NewsArticle[]> => {
+    console.log(`Searching for: ${query}`);
+    // Placeholder: Implement actual search logic against Supabase
+    return [];
+  };
+
+  const analyzeNews = async (content: string): Promise<number> => {
+    console.log(`Analyzing content: ${content.substring(0, 50)}...`);
+    // Placeholder: Implement actual analysis logic (e.g., API call)
+    return Math.floor(Math.random() * 100); // Return a random score
+  };
+
 
   const voteOnArticle = async (articleId: string, vote: 'up' | 'down') => {
     try {
@@ -81,17 +165,12 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
-  // New: getArticleById helper
   const getArticleById = (id: string) => articles.find((a) => a.id === id);
 
-  // New: persist credibility score to Supabase
   const saveCredibilityScore = async (articleId: string, score: number) => {
     try {
-      // Update both camelCase and snake_case fields (in case your DB uses either)
-      const updates: any = { updated_at: new Date().toISOString() };
-      updates['credibilityScore'] = score;
-      updates['credibility_score'] = score;
-
+      const updates: any = { credibility_score: score, updated_at: new Date().toISOString() };
+      
       const { error } = await supabase
         .from('news_articles')
         .update(updates)
@@ -99,7 +178,6 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      // Update local state if present
       setArticles((prev) =>
         prev.map((a) => (a.id === articleId ? { ...a, credibilityScore: score } : a))
       );
@@ -116,7 +194,11 @@ export const NewsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         articles,
         loading,
+        searchTerm,
+        setSearchTerm,
         fetchNews,
+        searchNews,
+        analyzeNews,
         voteOnArticle,
         savedArticles,
         toggleSaveArticle,

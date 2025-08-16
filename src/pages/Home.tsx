@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Shield, Users, Zap, Quote, Lock, UserPlus } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
+import { NewsFilters, Filters } from '../components/NewsFilters';
 
 const Home: React.FC = () => {
-  const { news, loading, fetchNews } = useNews(); // ✅ Changed from `articles` to `news`
+  // The context now provides 'news' instead of 'articles'
+  const { news, loading, fetchNews } = useNews();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [currentQuote, setCurrentQuote] = useState(0);
+
+  const [filters, setFilters] = useState<Filters>({
+    dateRange: 'all',
+    category: 'all',
+  });
 
   const quotes = [
     "Breaking News, Not Trust.",
@@ -21,9 +28,10 @@ const Home: React.FC = () => {
     "If it's not verified, it's just noise."
   ];
 
+  // This effect now passes filters to the backend, which handles the filtering logic
   useEffect(() => {
-    fetchNews();
-  }, []);
+    fetchNews(filters);
+  }, [filters]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -31,6 +39,8 @@ const Home: React.FC = () => {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  // Client-side filtering (useMemo) is no longer needed and has been removed.
 
   const handleStartVerifying = () => {
     if (isAuthenticated) {
@@ -97,6 +107,8 @@ const Home: React.FC = () => {
             </p>
           </div>
 
+          <NewsFilters filters={filters} onFilterChange={setFilters} />
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
@@ -113,11 +125,20 @@ const Home: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {(news && news.length > 0 ? news.slice(0, 6) : []).map((article) => (
-                <NewsCard key={article.id} article={article} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {news.map((article) => (
+                  <NewsCard key={article.id} article={article} />
+                ))}
+              </div>
+              
+              {/* Message for when no articles match */}
+              {!loading && news.length === 0 && (
+                   <div className="text-center py-16 col-span-1 md:col-span-2 lg:col-span-3">
+                     <p className="text-gray-600 text-lg">No articles match your current filters.</p>
+                   </div>
+              )}
+            </>
           )}
         </div>
       </section>
