@@ -1,3 +1,17 @@
+/**
+ * NewsCard component
+ * ------------------
+ * Displays a single news article with:
+ *  - Image
+ *  - Title
+ *  - Description
+ *  - Date
+ *  - Source/author
+ *
+ * Props:
+ * - article: object containing all the details of a news item
+ */
+
 import React from 'react';
 import { NewsArticle } from '../lib/supabase';
 import { Link } from 'react-router-dom';
