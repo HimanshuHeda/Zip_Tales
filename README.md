@@ -190,3 +190,10 @@ Example:
 - Fetch reliability from external services (e.g., NewsGuard, MBFC) instead of static JSON.
 - Allow users to propose rating changes and view rationale.
 - Add a detailed breakdown modal per source.
+
+
+<p align="center">
+  <a href="#top" style="font-size: 16px; padding: 8px 16px; border: 1px solid #ccc; border-radius: 6px; text-decoration: none;">
+    ⬆️ Back to Top
+  </a>
+</p>
