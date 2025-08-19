@@ -131,13 +131,19 @@ const Header: React.FC = () => {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center space-x-6">
-            <Link 
-              to="/" 
-              className="relative text-gray-700 hover:text-pink-600 transition-all duration-300 group"
-            >
-              <span className="relative z-10">Home</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-            </Link>
+          <Link 
+  to="/" 
+  className="relative text-gray-700 hover:text-pink-600 transition-all duration-300 group px-2 py-1 rounded-lg"
+>
+  {/* Text with slide effect */}
+  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+    Home
+  </span>
+
+  {/* Gradient background with fade + scale */}
+  <span className="absolute inset-0 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg opacity-0 group-hover:opacity-20 scale-95 group-hover:scale-100 transition-all duration-300"></span>
+</Link>
+
             
             {/* Categories Dropdown */}
             <div className="relative">
@@ -146,7 +152,8 @@ const Header: React.FC = () => {
                   e.stopPropagation();
                   setShowCategoryDropdown(!showCategoryDropdown);
                 }}
-                className="flex items-center space-x-1 text-gray-700 hover:text-pink-600 transition-all duration-300 group relative"
+                className="flex items-center space-x-1 text-gray-700 hover:text-pink-600 transition-all duration-300 group relative px-3 py-1 rounded-lg"
+
               >
                 <span className="relative z-10">Categories</span>
                 {!isAuthenticated && <Lock className="h-4 w-4 text-gray-400 transition-all duration-300 group-hover:text-pink-500" />}
@@ -202,30 +209,54 @@ const Header: React.FC = () => {
             
             {isAuthenticated && (
               <>
-                <Link 
-                  to="/voting" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative"
-                >
-                  <Vote className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="relative z-10">Vote</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-                </Link>
-                <Link 
-                  to="/saved" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative"
-                >
-                  <Bookmark className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="relative z-10">Saved</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-                </Link>
-                <Link 
-                  to="/following" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative"
-                >
-                  <Heart className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="relative z-10">Following</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-                </Link>
+          <Link 
+  to="/voting" 
+  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative px-2 py-1 rounded-lg"
+>
+  {/* Icon with bounce + rotate */}
+  <Vote className="h-4 w-4 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6" />
+
+  {/* Text slides slightly */}
+  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+    Vote
+  </span>
+
+  {/* Gradient background animation */}
+  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 scale-95 group-hover:scale-100 transition-all duration-300"></span>
+</Link>
+
+<Link 
+  to="/saved" 
+  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative px-2 py-1 rounded-lg"
+>
+  {/* Icon with bounce + rotate */}
+  <Bookmark className="h-4 w-4 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6" />
+
+  {/* Text slides slightly */}
+  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+    Saved
+  </span>
+
+  {/* Gradient background animation */}
+  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 scale-95 group-hover:scale-100 transition-all duration-300"></span>
+</Link>
+
+              <Link 
+  to="/following" 
+  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-all duration-300 group relative px-2 py-1 rounded-lg"
+>
+  {/* Icon with bounce */}
+  <Heart className="h-4 w-4 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6" />
+  
+  {/* Text with subtle lift */}
+  <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+    Following
+  </span>
+
+  {/* Gradient background grows smoothly */}
+  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 scale-95 group-hover:scale-100 transition-all duration-300"></span>
+</Link>
+
               </>
             )}
           </nav>
@@ -234,18 +265,18 @@ const Header: React.FC = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="relative group">
-                <button className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 transition-all duration-300 group">
+                <button className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 transition-all duration-300 group ml-5">
                   <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                   <span className="hidden md:block transition-colors duration-300">{user?.name}</span>
                 </button>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 animate-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full right-5 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 animate-in slide-in-from-top-2 duration-200">
                   <Link
                     to="/profile"
                     className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-blue-50 hover:text-pink-600 rounded-t-lg transition-all duration-300"
                   >
-                    <User className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                    <User className="h-4 w-5 transition-transform duration-300 group-hover:scale-110" />
                     <span>Profile</span>
                   </Link>
                   <Link
