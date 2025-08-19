@@ -46,6 +46,9 @@ export interface VerificationHistory {
 }
 
 class BlockchainService {
+  getExplorerUrl(transactionHash: any): string | undefined {
+    throw new Error('Method not implemented.');
+  }
   private provider: ethers.JsonRpcProvider | ethers.BrowserProvider | null = null;
   private contract: ethers.Contract | null = null;
   private signer: ethers.Signer | null = null;

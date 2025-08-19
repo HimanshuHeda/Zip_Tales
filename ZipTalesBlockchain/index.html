@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ZipTales Article DApp</title>
+</head>
+<body>
+  <h2>Submit Article</h2>
+  <input id="title" placeholder="Title"><br>
+  <input id="hash" placeholder="IPFS Hash"><br>
+  <button onclick="submitArticle()">Submit</button>
+
+  <h2>Vote on Article</h2>
+  <input id="vote_id" placeholder="Article ID"><br>
+  <select id="vote_type">
+    <option value="true">Upvote</option>
+    <option value="false">Downvote</option>
+  </select><br>
+  <button onclick="handleVote()">Vote</button>
+
+  <h2>Fetch Article</h2>
+  <input id="fetch_id" placeholder="Article ID"><br>
+  <button onclick="handleFetch()">Fetch</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000';
+    const VERIFIED_ADDRESS = '0x989Fdb2D9397806F1c647601646D9Fa49c5fa7E5'.toLowerCase();
+
+    // ✅ Submit Article (MetaMask required)
+    async function submitArticle() {
+      if (typeof window.ethereum === 'undefined') {
+        alert("MetaMask is not installed.");
+        return;
+      }
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const sender = accounts[0];
+
+        if (sender.toLowerCase() !== VERIFIED_ADDRESS) {
+          alert("You are not a verified source. Transaction will fail.");
+          return;
+        }
+
+        const title = document.getElementById('title').value;
+        const hash = document.getElementById('hash').value;
+
+        if (!title || !hash) {
+          alert("Please provide both title and IPFS hash.");
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/submit-article`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title,
+            article_hash: hash
+          })
+        });
+
+        const data = await res.json();
+        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+      } catch (error) {
+        console.error("Submit error:", error);
+        alert("Error submitting article. Check console.");
+      }
+    }
+
+    // ✅ Vote on Article
+    async function voteArticle(articleId, upvote) {
+      const res = await fetch(`${API_BASE}/vote-article`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          article_id: articleId,
+          upvote: upvote
+        })
+      });
+
+      return res.json();
+    }
+
+    async function handleVote() {
+      const articleId = document.getElementById("vote_id").value;
+      const upvote = document.getElementById("vote_type").value === "true";
+
+      if (!articleId) {
+        alert("Please enter an Article ID.");
+        return;
+      }
+
+      const data = await voteArticle(articleId, upvote);
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    // ✅ Get Article
+    async function getArticle(articleId) {
+      const res = await fetch(`${API_BASE}/get-article/${articleId}`);
+      return res.json();
+    }
+
+    async function handleFetch() {
+      const articleId = document.getElementById("fetch_id").value;
+
+      if (!articleId) {
+        alert("Please enter an Article ID.");
+        return;
+      }
+
+      const data = await getArticle(articleId);
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    // ✅ MetaMask check on page load
+    window.addEventListener('load', () => {
+      if (typeof window.ethereum !== 'undefined') {
+        console.log("✅ MetaMask is detected!");
+      } else {
+        console.warn("❌ MetaMask is NOT installed.");
+      }
+    });
+  </script>
+</body>
+</html>
