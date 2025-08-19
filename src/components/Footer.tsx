@@ -1,3 +1,12 @@
+/**
+ * Footer Component
+ * ----------------
+ * Displays the footer section of the website.
+ * Includes:
+ *  - Copyright information
+ *  - Optional links or credits
+ */
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Mail, MapPin, Send, CheckCircle } from 'lucide-react';

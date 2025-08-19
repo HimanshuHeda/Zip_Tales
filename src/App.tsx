@@ -1,29 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { NewsProvider } from './contexts/NewsContext';
-import { BlockchainProvider } from './contexts/BlockchainContext';
-import { NotificationProvider } from './contexts/NotificationContext';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Profile from './pages/Profile';
-import SubmitNews from './pages/SubmitNews';
-import Voting from './pages/Voting';
-import Saved from './pages/Saved';
-import Following from './pages/Following';
-import Categories from './pages/Categories';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-import NotFound from './pages/NotFound';
-import ArticleDetail from './pages/ArticleDetail';
-import AuthCallback from './pages/AuthCallback';
-import Chatbot from './components/Chatbot';
-import ThemeToggle from './components/ThemeToggle';
-import NotificationToast from './components/NotificationToast';
+import Navbar from "./components/Navbar";
+import Services from "./pages/Services";
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { NewsProvider } from "./contexts/NewsContext";
+import { BlockchainProvider } from "./contexts/BlockchainContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+import SubmitNews from "./pages/SubmitNews";
+import Voting from "./pages/Voting";
+import Saved from "./pages/Saved";
+import Following from "./pages/Following";
+import Categories from "./pages/Categories";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import NotFound from "./pages/NotFound";
+import ArticleDetail from "./pages/ArticleDetail";
+import AuthCallback from "./pages/AuthCallback";
+import Chatbot from "./components/Chatbot";
+import ThemeToggle from "./components/ThemeToggle";
+import NotificationToast from "./components/NotificationToast";
 
 function App() {
   return (
@@ -37,6 +40,7 @@ function App() {
               <Router>
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
                   <Header />
+                  <Navbar />
                   <main className="pt-20">
                     <Routes>
                       <Route path="/" element={<Home />} />
@@ -54,6 +58,7 @@ function App() {
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
+                      <Route path="/services" element={<Services />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
