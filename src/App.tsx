@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NewsProvider } from './contexts/NewsContext';
 import { BlockchainProvider } from './contexts/BlockchainContext';
@@ -21,6 +21,18 @@ import ArticleDetail from './pages/ArticleDetail';
 import AuthCallback from './pages/AuthCallback';
 import Chatbot from './components/Chatbot';
 import ThemeToggle from './components/ThemeToggle';
+import { useEffect } from 'react';
+
+// ScrollToTop component to handle scroll restoration on route changes
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+};
 
 function App() {
   return (
@@ -32,6 +44,7 @@ function App() {
         <NewsProvider>
           <BlockchainProvider>
             <Router>
+              <ScrollToTop />
               <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
                 <Header />
                 <main className="pt-20">

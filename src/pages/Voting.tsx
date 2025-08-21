@@ -3,8 +3,11 @@ import { Vote, ThumbsUp, ThumbsDown, Filter, Search, Clock, CheckCircle, AlertTr
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Voting: React.FC = () => {
+  useScrollToTop();
+  
   const { articles, loading } = useNews();
   const { isAuthenticated } = useAuth();
   const [filter, setFilter] = useState<'all' | 'pending' | 'disputed' | 'trusted'>('pending');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Mail, MapPin, Send, CheckCircle } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -7,6 +7,7 @@ const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const navigate = useNavigate();
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +21,10 @@ const Footer: React.FC = () => {
       setIsSubscribing(false);
       setEmail('');
     }, 1500);
+  };
+
+  const handleFooterLinkClick = (path: string) => {
+    navigate(path);
   };
 
   return (
@@ -72,24 +77,36 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-pink-400">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Home
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/voting" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/voting')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Community Voting
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/submit" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/submit')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Submit News
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/saved" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/saved')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Saved Articles
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -99,24 +116,36 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-blue-400">Categories</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/categories/politics" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/categories/politics')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Politics
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/categories/technology" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/categories/technology')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Technology
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/categories/sports" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/categories/sports')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Sports
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/categories/entertainment" className="text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => handleFooterLinkClick('/categories/entertainment')}
+                  className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                >
                   Entertainment
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -166,24 +195,36 @@ const Footer: React.FC = () => {
               <h4 className="text-lg font-semibold text-pink-400">Connect</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/about" className="text-gray-300 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleFooterLinkClick('/about')}
+                    className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                  >
                     About Us
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/contact" className="text-gray-300 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleFooterLinkClick('/contact')}
+                    className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                  >
                     Contact
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleFooterLinkClick('/privacy')}
+                    className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                  >
                     Privacy Policy
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link to="/terms" className="text-gray-300 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleFooterLinkClick('/terms')}
+                    className="text-gray-300 hover:text-white transition-colors text-left w-full"
+                  >
                     Terms of Service
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>

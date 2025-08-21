@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Search, AlertTriangle } from 'lucide-react';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const NotFound: React.FC = () => {
+  useScrollToTop();
+  
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
       <div className="max-w-lg w-full text-center">

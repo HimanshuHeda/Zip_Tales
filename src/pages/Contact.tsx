@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, Users, Shield } from 'lucide-react';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Contact: React.FC = () => {
+  useScrollToTop();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',

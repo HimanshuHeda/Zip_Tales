@@ -4,8 +4,11 @@ import { Tag, TrendingUp, Lock, UserPlus } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Categories: React.FC = () => {
+  useScrollToTop();
+  
   const { category } = useParams<{ category: string }>();
   const { articles, loading, fetchNews } = useNews();
   const { isAuthenticated } = useAuth();

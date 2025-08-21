@@ -4,8 +4,11 @@ import { ArrowLeft, Clock, User, MapPin, ThumbsUp, ThumbsDown, Bookmark, Bookmar
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import BlockchainVerification from '../components/BlockchainVerification';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const ArticleDetail: React.FC = () => {
+  useScrollToTop();
+  
   const { id } = useParams<{ id: string }>();
   const { getArticleById, voteOnArticle, savedArticles, toggleSaveArticle } = useNews();
   const { isAuthenticated } = useAuth();
