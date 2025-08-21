@@ -158,6 +158,88 @@ class BlockchainService {
   formatAddress(address: string) {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
+
+  // Get news verification details by token ID
+  async getNewsVerification(tokenId: string | number): Promise<BlockchainVerification | null> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const result = await this.contract.getNewsVerification(tokenId);
+      if (!result || result[0] === ethers.ZeroAddress) return null;
+
+      return {
+        tokenId: tokenId.toString(),
+        newsHash: result[0],
+        credibilityScore: Number(result[1]),
+        ipfsHash: result[2],
+        verifier: result[3],
+        timestamp: Number(result[4]) * 1000, // Convert from seconds to milliseconds
+        transactionHash: '', // Not available from this call
+        blockNumber: 0, // Not available from this call
+        network: this.currentNetwork
+      };
+    } catch (error) {
+      console.error('Failed to get news verification:', error);
+      return null;
+    }
+  }
+
+  // Get verification history for a token ID
+  async getVerificationHistory(tokenId: string | number): Promise<VerificationHistory[]> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const history = await this.contract.getVerificationHistory(tokenId);
+      return history.map((entry: any) => ({
+        timestamp: Number(entry.timestamp) * 1000, // Convert from seconds to milliseconds
+        score: Number(entry.score),
+        verifier: entry.verifier,
+        transactionHash: '' // Not available from this call
+      }));
+    } catch (error) {
+      console.error('Failed to get verification history:', error);
+      return [];
+    }
+  }
+
+  // Check if news content is already verified
+  async isNewsVerified(newsContent: string): Promise<boolean> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const newsHash = ethers.keccak256(ethers.toUtf8Bytes(newsContent));
+      return await this.contract.isNewsVerified(newsHash);
+    } catch (error) {
+      console.error('Failed to check if news is verified:', error);
+      return false;
+    }
+  }
+
+  // Update credibility score for a token ID
+  async updateCredibilityScore(tokenId: string | number, newScore: number): Promise<boolean> {
+    try {
+      if (!this.contract || !this.signer) throw new Error('Wallet not connected');
+      
+      const tx = await this.contract.updateCredibilityScore(tokenId, newScore);
+      await tx.wait();
+      return true;
+    } catch (error) {
+      console.error('Failed to update credibility score:', error);
+      return false;
+    }
+  }
+
+  // Get blockchain explorer URL for a transaction hash
+  getExplorerUrl(txHash: string): string {
+    const baseUrls = {
+      MUMBAI: 'https://mumbai.polygonscan.com/tx/',
+      POLYGON: 'https://polygonscan.com/tx/',
+      ETHEREUM: 'https://etherscan.io/tx/'
+    };
+    
+    const baseUrl = baseUrls[this.currentNetwork as keyof typeof baseUrls] || baseUrls.MUMBAI;
+    return baseUrl + txHash;
+  }
 }
 
 export const blockchainService = new BlockchainService();
