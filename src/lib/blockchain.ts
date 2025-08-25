@@ -12,20 +12,18 @@ const NEWS_VERIFICATION_ABI = [
   "event ScoreUpdated(uint256 indexed tokenId, uint256 oldScore, uint256 newScore, address updater)"
 ];
 
-// Contract addresses (these would be deployed contracts)
+// Contract addresses (dummy for now — replace with yours)
 const CONTRACT_ADDRESSES = {
-  // Polygon Mumbai Testnet
   MUMBAI: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-  // Polygon Mainnet (for production)
   POLYGON: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-  // Ethereum Mainnet (for high-value news)
   ETHEREUM: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
 };
 
+// CORS-friendly RPCs (Infura)
 const RPC_URLS = {
-  MUMBAI: 'https://rpc-mumbai.maticvigil.com',
-  POLYGON: 'https://polygon-rpc.com',
-  ETHEREUM: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY'
+  MUMBAI: `https://polygon-mumbai.infura.io/v3/YOUR_INFURA_PROJECT_ID`,
+  POLYGON: `https://polygon-mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID`,
+  ETHEREUM: `https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID`
 };
 
 export interface BlockchainVerification {
@@ -48,19 +46,23 @@ export interface VerificationHistory {
 }
 
 class BlockchainService {
-  private provider: ethers.JsonRpcProvider | null = null;
+  getExplorerUrl(transactionHash: any): string | undefined {
+    throw new Error('Method not implemented.');
+  }
+  private provider: ethers.JsonRpcProvider | ethers.BrowserProvider | null = null;
   private contract: ethers.Contract | null = null;
   private signer: ethers.Signer | null = null;
-  private currentNetwork: string = 'MUMBAI'; // Default to testnet
+  private currentNetwork: string = 'MUMBAI';
 
   async initialize(network: string = 'MUMBAI') {
     try {
       this.currentNetwork = network;
-      this.provider = new ethers.JsonRpcProvider(RPC_URLS[network as keyof typeof RPC_URLS]);
-      
-      // Check if MetaMask is available
+
+      // Use MetaMask if available
       if (typeof window !== 'undefined' && window.ethereum) {
+        console.log("Using MetaMask provider...");
         const browserProvider = new ethers.BrowserProvider(window.ethereum);
+        this.provider = browserProvider;
         this.signer = await browserProvider.getSigner();
         this.contract = new ethers.Contract(
           CONTRACT_ADDRESSES[network as keyof typeof CONTRACT_ADDRESSES],
@@ -68,14 +70,16 @@ class BlockchainService {
           this.signer
         );
       } else {
-        // Read-only contract for viewing data
+        // Use Infura for read-only
+        console.log("Using Infura RPC for read-only mode...");
+        this.provider = new ethers.JsonRpcProvider(RPC_URLS[network as keyof typeof RPC_URLS]);
         this.contract = new ethers.Contract(
           CONTRACT_ADDRESSES[network as keyof typeof CONTRACT_ADDRESSES],
           NEWS_VERIFICATION_ABI,
           this.provider
         );
       }
-      
+
       return true;
     } catch (error) {
       console.error('Failed to initialize blockchain service:', error);
@@ -85,50 +89,25 @@ class BlockchainService {
 
   async connectWallet(): Promise<boolean> {
     try {
-      if (!window.ethereum) {
-        throw new Error('MetaMask not found');
-      }
-
+      if (!window.ethereum) throw new Error('MetaMask not found');
       await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const browserProvider = new ethers.BrowserProvider(window.ethereum);
-      this.signer = await browserProvider.getSigner();
-      
-      if (this.contract && this.provider) {
-        this.contract = new ethers.Contract(
-          CONTRACT_ADDRESSES[this.currentNetwork as keyof typeof CONTRACT_ADDRESSES],
-          NEWS_VERIFICATION_ABI,
-          this.signer
-        );
-      }
-      
-      return true;
+      return this.initialize(this.currentNetwork);
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       return false;
     }
   }
 
-  async verifyNewsOnBlockchain(
-    newsContent: string,
-    credibilityScore: number,
-    metadata: any
-  ): Promise<BlockchainVerification | null> {
+  async verifyNewsOnBlockchain(newsContent: string, credibilityScore: number, metadata: any): Promise<BlockchainVerification | null> {
     try {
-      if (!this.contract || !this.signer) {
-        throw new Error('Blockchain not initialized or wallet not connected');
-      }
+      if (!this.contract || !this.signer) throw new Error('Wallet not connected');
 
-      // Create hash of news content
       const newsHash = ethers.keccak256(ethers.toUtf8Bytes(newsContent));
-      
-      // Upload metadata to IPFS (simulated)
       const ipfsHash = await this.uploadToIPFS(metadata);
-      
-      // Call smart contract
+
       const tx = await this.contract.verifyNews(newsHash, credibilityScore, ipfsHash);
       const receipt = await tx.wait();
-      
-      // Extract token ID from event logs
+
       const event = receipt.logs.find((log: any) => {
         try {
           const parsed = this.contract!.interface.parseLog(log);
@@ -137,10 +116,10 @@ class BlockchainService {
           return false;
         }
       });
-      
+
       const parsedEvent = this.contract.interface.parseLog(event);
       const tokenId = parsedEvent?.args[0].toString();
-      
+
       return {
         tokenId,
         newsHash,
@@ -158,12 +137,89 @@ class BlockchainService {
     }
   }
 
-  async updateCredibilityScore(tokenId: string, newScore: number): Promise<boolean> {
+  async getNetworkInfo() {
     try {
-      if (!this.contract || !this.signer) {
-        throw new Error('Blockchain not initialized or wallet not connected');
-      }
+      if (!this.provider) return null;
+      const network = await this.provider.getNetwork();
+      const blockNumber = await this.provider.getBlockNumber();
+      return { name: network.name, chainId: Number(network.chainId), blockNumber };
+    } catch (error) {
+      console.error('Failed to get network info:', error);
+      return null;
+    }
+  }
 
+  private async uploadToIPFS(metadata: any): Promise<string> {
+    const data = JSON.stringify(metadata);
+    const hash = ethers.keccak256(ethers.toUtf8Bytes(data));
+    return `Qm${hash.slice(2, 48)}`;
+  }
+
+  formatAddress(address: string) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
+  // Get news verification details by token ID
+  async getNewsVerification(tokenId: string | number): Promise<BlockchainVerification | null> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const result = await this.contract.getNewsVerification(tokenId);
+      if (!result || result[0] === ethers.ZeroAddress) return null;
+
+      return {
+        tokenId: tokenId.toString(),
+        newsHash: result[0],
+        credibilityScore: Number(result[1]),
+        ipfsHash: result[2],
+        verifier: result[3],
+        timestamp: Number(result[4]) * 1000, // Convert from seconds to milliseconds
+        transactionHash: '', // Not available from this call
+        blockNumber: 0, // Not available from this call
+        network: this.currentNetwork
+      };
+    } catch (error) {
+      console.error('Failed to get news verification:', error);
+      return null;
+    }
+  }
+
+  // Get verification history for a token ID
+  async getVerificationHistory(tokenId: string | number): Promise<VerificationHistory[]> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const history = await this.contract.getVerificationHistory(tokenId);
+      return history.map((entry: any) => ({
+        timestamp: Number(entry.timestamp) * 1000, // Convert from seconds to milliseconds
+        score: Number(entry.score),
+        verifier: entry.verifier,
+        transactionHash: '' // Not available from this call
+      }));
+    } catch (error) {
+      console.error('Failed to get verification history:', error);
+      return [];
+    }
+  }
+
+  // Check if news content is already verified
+  async isNewsVerified(newsContent: string): Promise<boolean> {
+    try {
+      if (!this.contract) throw new Error('Blockchain service not initialized');
+      
+      const newsHash = ethers.keccak256(ethers.toUtf8Bytes(newsContent));
+      return await this.contract.isNewsVerified(newsHash);
+    } catch (error) {
+      console.error('Failed to check if news is verified:', error);
+      return false;
+    }
+  }
+
+  // Update credibility score for a token ID
+  async updateCredibilityScore(tokenId: string | number, newScore: number): Promise<boolean> {
+    try {
+      if (!this.contract || !this.signer) throw new Error('Wallet not connected');
+      
       const tx = await this.contract.updateCredibilityScore(tokenId, newScore);
       await tx.wait();
       return true;
@@ -173,113 +229,25 @@ class BlockchainService {
     }
   }
 
-  async getNewsVerification(tokenId: string): Promise<BlockchainVerification | null> {
-    try {
-      if (!this.contract) {
-        throw new Error('Blockchain not initialized');
-      }
-
-      const result = await this.contract.getNewsVerification(tokenId);
-      return {
-        tokenId,
-        newsHash: result[0],
-        credibilityScore: Number(result[1]),
-        ipfsHash: result[2],
-        verifier: result[3],
-        timestamp: Number(result[4]),
-        transactionHash: '',
-        blockNumber: 0,
-        network: this.currentNetwork
-      };
-    } catch (error) {
-      console.error('Failed to get news verification:', error);
-      return null;
-    }
-  }
-
-  async getVerificationHistory(tokenId: string): Promise<VerificationHistory[]> {
-    try {
-      if (!this.contract) {
-        throw new Error('Blockchain not initialized');
-      }
-
-      const history = await this.contract.getVerificationHistory(tokenId);
-      return history.map((entry: any) => ({
-        timestamp: Number(entry.timestamp),
-        score: Number(entry.score),
-        verifier: entry.verifier,
-        transactionHash: '' // Would need to query events for this
-      }));
-    } catch (error) {
-      console.error('Failed to get verification history:', error);
-      return [];
-    }
-  }
-
-  async isNewsVerified(newsContent: string): Promise<boolean> {
-    try {
-      if (!this.contract) {
-        throw new Error('Blockchain not initialized');
-      }
-
-      const newsHash = ethers.keccak256(ethers.toUtf8Bytes(newsContent));
-      return await this.contract.isNewsVerified(newsHash);
-    } catch (error) {
-      console.error('Failed to check if news is verified:', error);
-      return false;
-    }
-  }
-
-  async getNetworkInfo() {
-    try {
-      if (!this.provider) return null;
-      
-      const network = await this.provider.getNetwork();
-      const blockNumber = await this.provider.getBlockNumber();
-      
-      return {
-        name: network.name,
-        chainId: Number(network.chainId),
-        blockNumber
-      };
-    } catch (error) {
-      console.error('Failed to get network info:', error);
-      return null;
-    }
-  }
-
-  private async uploadToIPFS(metadata: any): Promise<string> {
-    // Simulated IPFS upload - in production, use actual IPFS service
-    const data = JSON.stringify(metadata);
-    const hash = ethers.keccak256(ethers.toUtf8Bytes(data));
-    return `Qm${hash.slice(2, 48)}`; // Simulate IPFS hash format
-  }
-
-  // Utility function to format addresses
-  formatAddress(address: string): string {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  }
-
-  // Utility function to get explorer URL
+  // Get blockchain explorer URL for a transaction hash
   getExplorerUrl(txHash: string): string {
-    const explorers = {
+    const baseUrls = {
       MUMBAI: 'https://mumbai.polygonscan.com/tx/',
       POLYGON: 'https://polygonscan.com/tx/',
       ETHEREUM: 'https://etherscan.io/tx/'
     };
-    return `${explorers[this.currentNetwork as keyof typeof explorers]}${txHash}`;
+    
+    const baseUrl = baseUrls[this.currentNetwork as keyof typeof baseUrls] || baseUrls.MUMBAI;
+    return baseUrl + txHash;
   }
 }
 
-// Create singleton instance
 export const blockchainService = new BlockchainService();
 
-// Initialize on module load
 if (typeof window !== 'undefined') {
   blockchainService.initialize().catch(console.error);
 }
 
-// Type declarations for window.ethereum
 declare global {
   interface Window {
     ethereum?: any;

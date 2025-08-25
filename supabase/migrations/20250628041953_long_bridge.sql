@@ -106,11 +106,21 @@ CREATE TABLE IF NOT EXISTS saved_articles (
   UNIQUE(user_id, article_id)
 );
 
+-- Create followed_topics table
+CREATE TABLE IF NOT EXISTS followed_topics (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  topic text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, topic)
+);
+
 -- Enable Row Level Security
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE saved_articles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE followed_topics ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can read own data"
@@ -194,6 +204,25 @@ CREATE POLICY "Users can delete own saved articles"
   TO authenticated
   USING (auth.uid() = user_id);
 
+-- Followed topics policies
+CREATE POLICY "Users can read own followed topics"
+  ON followed_topics
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own followed topics"
+  ON followed_topics
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own followed topics"
+  ON followed_topics
+  FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
@@ -201,6 +230,11 @@ CREATE INDEX IF NOT EXISTS idx_articles_credibility_score ON articles(credibilit
 CREATE INDEX IF NOT EXISTS idx_votes_article_id ON votes(article_id);
 CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_articles_user_id ON saved_articles(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_followed_topics_user_id ON followed_topics(user_id);
+CREATE INDEX IF NOT EXISTS idx_followed_topics_topic ON followed_topics(topic);
 
 -- Insert sample articles
 INSERT INTO articles (title, summary, content, author, source, category, credibility_score, upvotes, downvotes, tags, location, verified, image_url) VALUES

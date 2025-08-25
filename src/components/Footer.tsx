@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail, MapPin, Send, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Facebook, Twitter, Instagram, Mail, MapPin, Send, CheckCircle } from "lucide-react";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const navigate = useNavigate();
@@ -14,12 +14,12 @@ const Footer: React.FC = () => {
     if (!email.trim()) return;
 
     setIsSubscribing(true);
-    
+
     // Simulate newsletter subscription
     setTimeout(() => {
       setSubscribed(true);
       setIsSubscribing(false);
-      setEmail('');
+      setEmail("");
     }, 1500);
   };
 
@@ -33,23 +33,32 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img src="/Zip Tales.jpg" alt="ZipTales" className="h-10 w-10 rounded-full" />
+            <div className="flex items-center space-x-2 group">
+              <img
+                src="/Zip Tales.jpg"
+                alt="ZipTales"
+                className="h-10 w-10 rounded-full transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              />
               <div>
-                <h3 className="text-xl font-bold">ZipTales</h3>
-                <p className="text-sm text-gray-300">Breaking News, Not Trust</p>
+                <h3 className="text-xl font-bold transition-all duration-300 group-hover:scale-105">
+                  ZipTales
+                </h3>
+                <p className="text-sm text-gray-300 transition-colors duration-300 group-hover:text-gray-200">
+                  Breaking News, Not Trust
+                </p>
               </div>
             </div>
-            <p className="text-gray-300 text-sm">
-              AI-powered news verification platform that filters misinformation and provides 
-              community-verified credibility scores for authentic journalism.
+            <p className="text-gray-300 text-sm transition-colors duration-300 hover:text-gray-200">
+              AI-powered news verification platform that filters misinformation
+              and provides community-verified credibility scores for authentic
+              journalism.
             </p>
             <div className="flex space-x-4">
               <a
                 href="https://www.facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-pink-400 transition-colors"
+                className="text-gray-300 hover:text-pink-400 transition-all duration-300 hover:scale-110 hover:rotate-12 transform"
               >
                 <Facebook className="h-5 w-5" />
               </a>
@@ -57,7 +66,7 @@ const Footer: React.FC = () => {
                 href="https://x.com/TalesZip"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-blue-400 transition-colors"
+                className="text-gray-300 hover:text-blue-400 transition-all duration-300 hover:scale-110 hover:rotate-12 transform"
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -65,7 +74,7 @@ const Footer: React.FC = () => {
                 href="https://www.instagram.com/ziptales3/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-pink-400 transition-colors"
+                className="text-gray-300 hover:text-pink-400 transition-all duration-300 hover:scale-110 hover:rotate-12 transform"
               >
                 <Instagram className="h-5 w-5" />
               </a>
@@ -74,35 +83,37 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-pink-400">Quick Links</h4>
+            <h4 className="text-lg font-semibold text-pink-400 transition-all duration-300 hover:scale-105">
+              Quick Links
+            </h4>
             <ul className="space-y-2">
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/')}
+                <button
+                  onClick={() => handleFooterLinkClick("/")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Home
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/voting')}
+                <button
+                  onClick={() => handleFooterLinkClick("/voting")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Community Voting
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/submit')}
+                <button
+                  onClick={() => handleFooterLinkClick("/submit")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Submit News
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/saved')}
+                <button
+                  onClick={() => handleFooterLinkClick("/saved")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Saved Articles
@@ -113,35 +124,39 @@ const Footer: React.FC = () => {
 
           {/* Categories */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-blue-400">Categories</h4>
+            <h4 className="text-lg font-semibold text-blue-400 transition-all duration-300 hover:scale-105">
+              Categories
+            </h4>
             <ul className="space-y-2">
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/categories/politics')}
+                <button
+                  onClick={() => handleFooterLinkClick("/categories/politics")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Politics
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/categories/technology')}
+                <button
+                  onClick={() => handleFooterLinkClick("/categories/technology")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Technology
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/categories/sports')}
+                <button
+                  onClick={() => handleFooterLinkClick("/categories/sports")}
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Sports
                 </button>
               </li>
               <li>
-                <button 
-                  onClick={() => handleFooterLinkClick('/categories/entertainment')}
+                <button
+                  onClick={() =>
+                    handleFooterLinkClick("/categories/entertainment")
+                  }
                   className="text-gray-300 hover:text-white transition-colors text-left w-full"
                 >
                   Entertainment
@@ -150,38 +165,43 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Newsletter Subscription */}
+          {/* Newsletter */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-pink-400">Stay Updated</h4>
-            <p className="text-gray-300 text-sm">
-              Subscribe to our newsletter for verified news updates and platform announcements.
+            <h4 className="text-lg font-semibold text-pink-400 transition-all duration-300 hover:scale-105">
+              Stay Updated
+            </h4>
+            <p className="text-gray-300 text-sm transition-colors duration-300 hover:text-gray-200">
+              Subscribe to our newsletter for verified news updates and platform
+              announcements.
             </p>
-            
+
             {subscribed ? (
-              <div className="bg-green-600 rounded-lg p-4 flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-white" />
-                <span className="text-white text-sm font-medium">Successfully subscribed!</span>
+              <div className="bg-green-600 rounded-lg p-4 flex items-center space-x-2 animate-in slide-in-from-top-2 duration-300">
+                <CheckCircle className="h-5 w-5 text-white transition-transform duration-300 animate-pulse" />
+                <span className="text-white text-sm font-medium">
+                  Successfully subscribed!
+                </span>
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 transition-all duration-300 group-hover:text-pink-400 group-focus-within:text-pink-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300 hover:border-pink-400 hover:bg-gray-700"
                     required
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isSubscribing}
-                  className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                  className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2 transform"
                 >
                   <Send className="h-4 w-4" />
-                  <span>{isSubscribing ? 'Subscribing...' : 'Subscribe'}</span>
+                  <span>{isSubscribing ? "Subscribing..." : "Subscribe"}</span>
                 </button>
               </form>
             )}
@@ -192,35 +212,37 @@ const Footer: React.FC = () => {
         <div className="mt-8 pt-8 border-t border-gray-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-pink-400">Connect</h4>
+              <h4 className="text-lg font-semibold text-pink-400">
+                Connect
+              </h4>
               <ul className="space-y-2">
                 <li>
-                  <button 
-                    onClick={() => handleFooterLinkClick('/about')}
+                  <button
+                    onClick={() => handleFooterLinkClick("/about")}
                     className="text-gray-300 hover:text-white transition-colors text-left w-full"
                   >
                     About Us
                   </button>
                 </li>
                 <li>
-                  <button 
-                    onClick={() => handleFooterLinkClick('/contact')}
+                  <button
+                    onClick={() => handleFooterLinkClick("/contact")}
                     className="text-gray-300 hover:text-white transition-colors text-left w-full"
                   >
                     Contact
                   </button>
                 </li>
                 <li>
-                  <button 
-                    onClick={() => handleFooterLinkClick('/privacy')}
+                  <button
+                    onClick={() => handleFooterLinkClick("/privacy")}
                     className="text-gray-300 hover:text-white transition-colors text-left w-full"
                   >
                     Privacy Policy
                   </button>
                 </li>
                 <li>
-                  <button 
-                    onClick={() => handleFooterLinkClick('/terms')}
+                  <button
+                    onClick={() => handleFooterLinkClick("/terms")}
                     className="text-gray-300 hover:text-white transition-colors text-left w-full"
                   >
                     Terms of Service
@@ -230,7 +252,9 @@ const Footer: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-blue-400">Contact Info</h4>
+              <h4 className="text-lg font-semibold text-blue-400">
+                Contact Info
+              </h4>
               <div className="space-y-2 text-sm text-gray-300">
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4" />
@@ -251,7 +275,7 @@ const Footer: React.FC = () => {
             Built by Team Code Breakers
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="space-y-2">
+            <div className="space-y-2 group">
               <h5 className="font-medium text-pink-400">Himanshu Heda</h5>
               <p className="text-sm text-gray-300">Team Leader / Manager</p>
               <div className="flex justify-center space-x-2">
@@ -259,7 +283,7 @@ const Footer: React.FC = () => {
                   href="https://www.linkedin.com/in/himanshu-heda/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 text-xs"
+                  className="text-blue-400 hover:underline"
                 >
                   LinkedIn
                 </a>
@@ -268,13 +292,13 @@ const Footer: React.FC = () => {
                   href="https://github.com/HimanshuHeda"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-gray-300 text-xs"
+                  className="text-gray-400 hover:underline"
                 >
                   GitHub
                 </a>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 group">
               <h5 className="font-medium text-blue-400">Avni Sharma</h5>
               <p className="text-sm text-gray-300">Frontend Developer</p>
               <div className="flex justify-center space-x-2">
@@ -282,7 +306,7 @@ const Footer: React.FC = () => {
                   href="https://www.linkedin.com/in/avnisharma1705/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 text-xs"
+                  className="text-blue-400 hover:underline"
                 >
                   LinkedIn
                 </a>
@@ -291,13 +315,13 @@ const Footer: React.FC = () => {
                   href="https://github.com/AVNI-THEEXPLORER"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-gray-300 text-xs"
+                  className="text-gray-400 hover:underline"
                 >
                   GitHub
                 </a>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 group">
               <h5 className="font-medium text-pink-400">Lakshita Pagaria</h5>
               <p className="text-sm text-gray-300">Python Developer</p>
               <div className="flex justify-center space-x-2">
@@ -305,7 +329,7 @@ const Footer: React.FC = () => {
                   href="https://www.linkedin.com/in/lakshita-pagaria/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 text-xs"
+                  className="text-blue-400 hover:underline"
                 >
                   LinkedIn
                 </a>
@@ -314,7 +338,7 @@ const Footer: React.FC = () => {
                   href="https://github.com/LakshitaPagaria"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-gray-300 text-xs"
+                  className="text-gray-400 hover:underline"
                 >
                   GitHub
                 </a>
@@ -326,7 +350,8 @@ const Footer: React.FC = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-700 text-center">
           <p className="text-gray-400 text-sm">
-            © {currentYear} ZipTales. All rights reserved. | Breaking News, Not Trust.
+            © {currentYear} ZipTales. All rights reserved. | Breaking News, Not
+            Trust.
           </p>
         </div>
       </div>
