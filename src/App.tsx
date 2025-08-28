@@ -1,13 +1,16 @@
-import Navbar from "./components/Navbar";
-import Services from "./pages/Services";
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NewsProvider } from "./contexts/NewsContext";
 import { BlockchainProvider } from "./contexts/BlockchainContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import Chatbot from "./components/Chatbot";
+import ThemeToggle from "./components/ThemeToggle";
+import NotificationToast from "./components/NotificationToast";
+
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -24,9 +27,18 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import ArticleDetail from "./pages/ArticleDetail";
 import AuthCallback from "./pages/AuthCallback";
-import Chatbot from "./components/Chatbot";
-import ThemeToggle from "./components/ThemeToggle";
-import NotificationToast from "./components/NotificationToast";
+import Services from "./pages/Services";
+
+// ✅ ScrollToTop component to handle scroll restoration on route changes
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 function App() {
   return (
@@ -38,6 +50,7 @@ function App() {
           <BlockchainProvider>
             <NotificationProvider>
               <Router>
+                <ScrollToTop />
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
                   <Header />
                   <Navbar />

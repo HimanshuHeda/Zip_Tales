@@ -1,7 +1,10 @@
 import React from 'react';
 import { Shield, Eye, Lock, Users, Database, Globe } from 'lucide-react';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Privacy: React.FC = () => {
+  useScrollToTop();
+  
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-50 via-white to-blue-50">
       <div className="max-w-4xl mx-auto">

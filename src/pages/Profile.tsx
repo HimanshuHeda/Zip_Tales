@@ -3,8 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { User, Mail, MapPin, Calendar, Award, Edit3, Save, X, Camera } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import WalletConnect from '../components/WalletConnect';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Profile: React.FC = () => {
+  useScrollToTop();
+  
   const { user, updateProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const isSetup = searchParams.get('setup') === 'true';
