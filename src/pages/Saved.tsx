@@ -3,11 +3,8 @@ import { Bookmark, BookmarkX } from 'lucide-react';
 import { useNews } from '../contexts/NewsContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewsCard from '../components/NewsCard';
-import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const Saved: React.FC = () => {
-  useScrollToTop();
-  
   const { articles, savedArticles, toggleSaveArticle } = useNews();
   const { isAuthenticated } = useAuth();
 

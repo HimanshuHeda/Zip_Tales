@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link2, FileText, Tag, MapPin, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNews } from '../contexts/NewsContext';
 
 const SubmitNews: React.FC = () => {
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
   const { user, isAuthenticated } = useAuth();
   const { analyzeNews } = useNews();
   const [formData, setFormData] = useState({
@@ -22,17 +19,10 @@ const SubmitNews: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const categories = [
     'Technology', 'Politics', 'Sports', 'Entertainment', 
     'Health', 'Science', 'Business', 'Environment'
-  ];
-
-  const popularLocations = [
-    'New York, USA', 'London, UK', 'Tokyo, Japan', 'Paris, France',
-    'Berlin, Germany', 'Sydney, Australia', 'Toronto, Canada', 'Mumbai, India',
-    'Beijing, China', 'São Paulo, Brazil', 'Moscow, Russia', 'Cairo, Egypt'
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -40,11 +30,6 @@ const SubmitNews: React.FC = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
-
-  const handleLocationSelect = (location: string) => {
-    setFormData({ ...formData, location });
-    setShowLocationPicker(false);
   };
 
   const handleAnalyze = async () => {
@@ -67,30 +52,11 @@ const SubmitNews: React.FC = () => {
 
     setIsSubmitting(true);
     
-    try {
-      // Simulate submission to database
-      const articleData = {
-        ...formData,
-        author: user?.name || 'Anonymous',
-        credibilityScore: analysisResult || 50,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        publishedAt: new Date().toISOString(),
-        verified: false,
-        upvotes: 0,
-        downvotes: 0
-      };
-
-      // In a real app, this would save to the database
-      console.log('Submitting article:', articleData);
-      
-      setTimeout(() => {
-        setSubmitted(true);
-        setIsSubmitting(false);
-      }, 2000);
-    } catch (error) {
-      console.error('Submission failed:', error);
+    // Simulate submission
+    setTimeout(() => {
+      setSubmitted(true);
       setIsSubmitting(false);
-    }
+    }, 2000);
   };
 
   const getScoreColor = (score: number) => {
@@ -357,29 +323,9 @@ const SubmitNews: React.FC = () => {
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    onFocus={() => setShowLocationPicker(true)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="New York, USA"
                   />
-                  
-                  {/* Location Picker Dropdown */}
-                  {showLocationPicker && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                      <div className="p-2">
-                        <p className="text-xs text-gray-500 mb-2">Popular locations:</p>
-                        {popularLocations.map((location) => (
-                          <button
-                            key={location}
-                            type="button"
-                            onClick={() => handleLocationSelect(location)}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                          >
-                            {location}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

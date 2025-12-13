@@ -1,10 +1,7 @@
 import React from 'react';
 import { Shield, Users, Zap, Award, CheckCircle, Target } from 'lucide-react';
-import { useScrollToTop } from '../hooks/useScrollToTop';
 
 const About: React.FC = () => {
-  useScrollToTop();
-  
   const features = [
     {
       icon: Shield,
